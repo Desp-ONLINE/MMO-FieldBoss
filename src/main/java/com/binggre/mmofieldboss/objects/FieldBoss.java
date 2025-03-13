@@ -1,5 +1,7 @@
 package com.binggre.mmofieldboss.objects;
 
+import com.binggre.binggreapi.objects.items.CustomItemStack;
+import com.binggre.binggreapi.utils.ItemManager;
 import com.binggre.binggreapi.utils.metadata.MetadataManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.FieldBossConfig;
@@ -23,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
@@ -46,6 +49,7 @@ public class FieldBoss {
     private int despawnMinute;
     private List<Integer> spawnHours;
     private int initRewardHour;
+    private CustomItemStack itemStack;
 
     private Map<RewardType, FieldBossReward> rewards;
     private String lastSpawnedBossUUID;

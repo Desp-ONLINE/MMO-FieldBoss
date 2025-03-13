@@ -10,7 +10,14 @@
     15
   ],
   "initRewardHour": 3,
-
+  "itemStack": {
+    "slot": 0,
+    "type": "stone",
+    "displayName": "dd",
+    "lore": [],
+    "amount": 1,
+    "customModelData": 0
+  },
   "rewards": {
     "NORMAL": {
       "chanceItems": {

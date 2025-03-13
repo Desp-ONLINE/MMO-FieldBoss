@@ -17,7 +17,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        PlayerFieldBoss init = repository.init(player);
+        PlayerFieldBoss init = repository.onEnable(player);
         repository.putIn(init);
     }
 

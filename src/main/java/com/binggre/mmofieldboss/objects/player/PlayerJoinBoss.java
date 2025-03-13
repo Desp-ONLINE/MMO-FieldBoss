@@ -39,19 +39,13 @@ public class PlayerJoinBoss {
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
         int afkSeconds = config.getAfkSeconds();
 
-        LocalDateTime lastHitTime = this.lastHitTime;
-        LocalDateTime now = LocalDateTime.now();
-
-        long secondsDifference = Duration.between(lastHitTime, now).getSeconds();
-
+        long secondsDifference = Duration.between(this.lastHitTime, LocalDateTime.now()).getSeconds();
         return secondsDifference > afkSeconds;
     }
 
 
     public void addDamage(Player player, double damage) {
         this.damage += damage;
-        Bukkit.getPlayer("BingleBingleNao").sendMessage(player.getName() + " : " + this.damage);
-
         lastHitTime = LocalDateTime.now();
     }
 

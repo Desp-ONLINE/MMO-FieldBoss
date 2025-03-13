@@ -27,7 +27,7 @@ public class PlayerRepository extends MongoCachedRepository<UUID, PlayerFieldBos
         return FileManager.toObject(document.toJson(), PlayerFieldBoss.class);
     }
 
-    public PlayerFieldBoss init(Player player) {
+    public PlayerFieldBoss onEnable(Player player) {
         UUID id = player.getUniqueId();
         PlayerFieldBoss playerFieldBoss = findById(id);
         if (playerFieldBoss == null) {
@@ -41,12 +41,12 @@ public class PlayerRepository extends MongoCachedRepository<UUID, PlayerFieldBos
 
     public void onEnable() {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            PlayerFieldBoss init = init(onlinePlayer);
+            PlayerFieldBoss init = onEnable(onlinePlayer);
             putIn(init);
         }
     }
 
-    public void saveAll() {
+    public void onDisable() {
         for (PlayerFieldBoss value : values()) {
             save(value);
         }

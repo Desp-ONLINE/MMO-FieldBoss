@@ -4,6 +4,7 @@ import com.binggre.binggreapi.command.CommandArgument;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.listener.velocity.ReloadVelocityListener;
 import com.binggre.velocitysocketclient.VelocityClient;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -12,9 +13,13 @@ public class ReloadArgument implements CommandArgument {
 
     public static void reload(CommandSender sender) {
         MMOFieldBoss plugin = MMOFieldBoss.getPlugin();
-        plugin.getFieldBossRepository().init();
-        plugin.getFieldBossConfig().init();
-        sender.sendMessage("MMO-FieldBoss 리로드 완료");
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getGuiConfig().init();
+            plugin.getFieldBossConfig().init();
+            plugin.getFieldBossRepository().onEnable();
+            plugin.getRedisRepository().onEnable();
+            sender.sendMessage("MMO-FieldBoss 리로드 완료");
+        });
     }
 
     @Override

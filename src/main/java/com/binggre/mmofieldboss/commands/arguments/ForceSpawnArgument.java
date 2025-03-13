@@ -54,7 +54,7 @@ public class ForceSpawnArgument implements CommandArgument {
 
     @Override
     public String getPermission() {
-        return "mmo.fieldboss.admin.forcespawn";
+        return "mmofieldboss.admin.forcespawn";
     }
 
     @Override

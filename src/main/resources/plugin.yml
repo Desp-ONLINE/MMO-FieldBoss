@@ -4,4 +4,3 @@ main: com.binggre.mmofieldboss.MMOFieldBoss
 api-version: '1.20'
 commands:
   필드보스:
-    permission: mmofieldboss.admin

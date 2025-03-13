@@ -18,7 +18,7 @@ public class FieldBossRepository {
 
     private final Map<Integer, FieldBoss> cache = new HashMap<>();
 
-    public void init() {
+    public void onEnable() {
         if (!cache.isEmpty()) {
             for (FieldBoss value : cache.values()) {
                 value.cancelTask();
