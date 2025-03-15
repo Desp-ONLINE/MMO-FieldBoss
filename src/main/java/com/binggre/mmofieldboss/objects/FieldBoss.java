@@ -13,6 +13,8 @@ import com.binggre.mmofieldboss.repository.PlayerRepository;
 import com.binggre.mmomail.MMOMail;
 import com.binggre.mmomail.api.MailAPI;
 import com.binggre.mmomail.objects.Mail;
+import com.binggre.mmoplayerdata.MMOPlayerDataPlugin;
+import com.binggre.mmoplayerdata.objects.MMOPlayerData;
 import com.binggre.velocitysocketclient.VelocityClient;
 import com.google.gson.annotations.SerializedName;
 import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
@@ -63,6 +65,21 @@ public class FieldBoss {
         spawnLocation = MMOFieldBoss.getPlugin().getFieldBossRepository().deserializeLocation(this, serializedLocation);
     }
 
+    private void broadcast() {
+        if (spawnedBoss == null) {
+            return;
+        }
+        String serverName = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig().getServerName(Bukkit.getPort());
+        FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
+        String broadcastSpawn = config.getBroadcastSpawn()
+                .replace("<channel>", serverName)
+                .replace("<boss>", spawnedBoss.getName());
+
+        Bukkit.broadcast(Component.text(broadcastSpawn));
+        VelocityClient.getInstance().getConnectClient()
+                .send(BroadcastVelocityListener.class, serverName, spawnedBoss.getName());
+    }
+
     public void spawn() throws InvalidMobTypeException {
         Entity entity = mythicMobAPI.spawnMythicMob(mythicMob, spawnLocation);
 
@@ -75,6 +92,7 @@ public class FieldBoss {
         mythicMobInstance.setDespawnMode(DespawnMode.NEVER);
         fieldBossRepository.save(this);
         startScheduler();
+        broadcast();
     }
 
     public void onInit() {
