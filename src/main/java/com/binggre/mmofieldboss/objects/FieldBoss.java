@@ -1,7 +1,7 @@
 package com.binggre.mmofieldboss.objects;
 
 import com.binggre.binggreapi.objects.items.CustomItemStack;
-import com.binggre.binggreapi.utils.ItemManager;
+import com.binggre.binggreapi.utils.NumberUtil;
 import com.binggre.binggreapi.utils.metadata.MetadataManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.FieldBossConfig;
@@ -14,7 +14,6 @@ import com.binggre.mmomail.MMOMail;
 import com.binggre.mmomail.api.MailAPI;
 import com.binggre.mmomail.objects.Mail;
 import com.binggre.mmoplayerdata.MMOPlayerDataPlugin;
-import com.binggre.mmoplayerdata.objects.MMOPlayerData;
 import com.binggre.velocitysocketclient.VelocityClient;
 import com.google.gson.annotations.SerializedName;
 import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
@@ -27,7 +26,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
@@ -142,31 +140,20 @@ public class FieldBoss {
         Bukkit.getScheduler().cancelTask(task);
     }
 
-    public static void broadcastLastHit(String killer, String bossName) {
+    public static void broadcast(String killer, String bestPlayer, double bestDamage, String bossName) {
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
         String broadcast = config.getBroadcastLastHit()
                 .replace("<player>", killer)
-                .replace("<boss>", bossName);
+                .replace("<boss>", bossName)
+                .replace("<best_player>", bestPlayer)
+                .replace("<best_damage>", NumberUtil.applyComma(bestDamage));
         Bukkit.broadcast(Component.text(broadcast));
     }
 
     public void onDeath(Player killer) {
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
         MailAPI mailAPI = MMOMail.getInstance().getMailAPI();
-
-        // 메일 미리 생성
-        Map<RewardType, Mail> mailMap = new EnumMap<>(RewardType.class);
-
         String mailSender = config.getMailSender();
-
-        mailMap.put(RewardType.LAST_HIT, mailAPI.createMail(mailSender, config.getLetterLastHit(), 0,
-                rewards.get(RewardType.LAST_HIT).getItemStacks(true)));
-
-        mailMap.put(RewardType.BEST_DAMAGE, mailAPI.createMail(mailSender, config.getLetterBestDamage(), 0,
-                rewards.get(RewardType.BEST_DAMAGE).getItemStacks(true)));
-
-        mailMap.put(RewardType.NORMAL, mailAPI.createMail(mailSender, config.getLetterNormal(), 0,
-                rewards.get(RewardType.NORMAL).getItemStacks(true)));
 
         // 참여한 플레이어 필터링
         List<PlayerFieldBoss> validPlayers = playerRepository.values().stream()
@@ -177,43 +164,60 @@ public class FieldBoss {
                 })
                 .collect(Collectors.toList());
 
-        // 막타 플레이어 처리 (killer)
-        Optional<PlayerFieldBoss> lastHitPlayer = validPlayers.stream()
-                .filter(player -> player.getId().equals(killer.getUniqueId()))
-                .findFirst();
-
-        lastHitPlayer.ifPresent(player -> {
-            String nickname = player.getNickname();
-            String bossName = spawnedBoss.getName();
-            broadcastLastHit(nickname, bossName);
-            VelocityClient.getInstance().getConnectClient().send(BroadcastVelocityListener.class, nickname, bossName);
-            mailAPI.sendMail(player.getNickname(), mailMap.get(RewardType.LAST_HIT));
-            validPlayers.remove(player);
-
-            player.getJoin(id).completeJoin();
-            playerRepository.save(player);
-        });
-
         if (validPlayers.isEmpty()) {
             return;
         }
 
+        // 메일 미리 생성
+        Mail lastHitMail = mailAPI.createMail(mailSender, config.getLetterLastHit(), 0,
+                rewards.get(RewardType.LAST_HIT).getItemStacks(true));
+
+        Mail bestDamageMail = mailAPI.createMail(mailSender, config.getLetterBestDamage(), 0,
+                rewards.get(RewardType.BEST_DAMAGE).getItemStacks(true));
+
+        Mail normalMail = mailAPI.createMail(mailSender, config.getLetterNormal(), 0,
+                rewards.get(RewardType.NORMAL).getItemStacks(true));
+
         // 데미지 기준 내림차순 정렬
-        validPlayers.sort(Comparator.comparing(player -> -player.getJoin(id).getDamage()));
+        validPlayers.sort(Comparator.comparingDouble(player -> -player.getJoin(id).getDamage()));
+
+        // 최고 데미지 플레이어
+        PlayerFieldBoss bestDamagePlayer = validPlayers.getFirst();
+
+        // 막타 플레이어 찾기
+        PlayerFieldBoss lastHitPlayer = null;
+        if (killer != null) {
+            UUID killerId = killer.getUniqueId();
+            for (PlayerFieldBoss player : validPlayers) {
+                if (player.getId().equals(killerId)) {
+                    lastHitPlayer = player;
+                    break;
+                }
+            }
+        }
+
+        // 막타 플레이어 처리
+        if (lastHitPlayer != null) {
+            String lastNickname = lastHitPlayer.getNickname();
+            String bestNickname = bestDamagePlayer.getNickname();
+            double bestDamage = bestDamagePlayer.getJoin(id).getDamage();
+
+            String bossName = spawnedBoss.getName();
+            broadcast(lastNickname, bestNickname, bestDamage, bossName);
+            VelocityClient.getInstance().getConnectClient().send(BroadcastVelocityListener.class
+                    , lastNickname, bestNickname, bestDamage + "", bossName);
+
+            mailAPI.sendMail(lastNickname, lastHitMail);
+        }
 
         // 최고 데미지 플레이어 처리
-        PlayerFieldBoss bestDamagePlayer = validPlayers.get(0);
-        mailAPI.sendMail(bestDamagePlayer.getNickname(), mailMap.get(RewardType.BEST_DAMAGE));
-        bestDamagePlayer.getJoin(id).completeJoin();
-        playerRepository.save(bestDamagePlayer);
-        validPlayers.remove(0);
+        mailAPI.sendMail(bestDamagePlayer.getNickname(), bestDamageMail);
 
-        // 나머지 일반 참여자 처리
-        Mail normalMail = mailMap.get(RewardType.NORMAL);
-        validPlayers.forEach(player -> {
+        // 모든 참여자에게 일반 보상 지급
+        for (PlayerFieldBoss player : validPlayers) {
             mailAPI.sendMail(player.getNickname(), normalMail);
             player.getJoin(id).completeJoin();
             playerRepository.save(player);
-        });
+        }
     }
 }

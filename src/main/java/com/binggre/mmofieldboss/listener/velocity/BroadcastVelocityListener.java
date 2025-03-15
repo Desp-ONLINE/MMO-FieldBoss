@@ -9,7 +9,8 @@ public class BroadcastVelocityListener extends VelocitySocketListener {
 
     @Override
     public void onReceive(String[] messages) {
-        FieldBoss.broadcastLastHit(messages[0], messages[1]);
+//        lastNickname, bestNickname, bestDamage + "", bossName
+        FieldBoss.broadcast(messages[0], messages[1], Double.parseDouble(messages[2]), messages[3]);
     }
 
     @Override

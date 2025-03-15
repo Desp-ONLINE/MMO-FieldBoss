@@ -5,12 +5,10 @@ import com.binggre.mmofieldboss.config.FieldBossConfig;
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalUnit;
 
 @Getter
 public class PlayerJoinBoss {
@@ -23,9 +21,13 @@ public class PlayerJoinBoss {
     private LocalDateTime lastJoinTime;
 
     public PlayerJoinBoss() {
-        LocalDateTime temp = LocalDateTime.of(2000, 1, 1, 1, 1, 1);
+        LocalDateTime temp = getResetTime();
         lastHitTime = temp;
         lastJoinTime = temp;
+    }
+
+    private LocalDateTime getResetTime() {
+        return LocalDateTime.of(2000, 1, 1, 1, 1, 1);
     }
 
     public boolean isCooldown(FieldBoss fieldBoss) {
@@ -43,10 +45,14 @@ public class PlayerJoinBoss {
         return secondsDifference > afkSeconds;
     }
 
-
-    public void addDamage(Player player, double damage) {
+    public void addDamage(double damage) {
         this.damage += damage;
         lastHitTime = LocalDateTime.now();
+    }
+
+    public void cancelCompleteJoin() {
+        reset();
+        lastJoinTime = getResetTime();
     }
 
     public void completeJoin() {

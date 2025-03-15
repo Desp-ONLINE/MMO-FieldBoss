@@ -3,10 +3,7 @@ package com.binggre.mmofieldboss.commands;
 import com.binggre.binggreapi.command.BetterCommand;
 import com.binggre.binggreapi.command.CommandArgument;
 import com.binggre.mmofieldboss.MMOFieldBoss;
-import com.binggre.mmofieldboss.commands.arguments.ForceSpawnArgument;
-import com.binggre.mmofieldboss.commands.arguments.ReloadArgument;
-import com.binggre.mmofieldboss.commands.arguments.RewardArgument;
-import com.binggre.mmofieldboss.commands.arguments.TimeGUIOpenArgument;
+import com.binggre.mmofieldboss.commands.arguments.*;
 import com.binggre.mmofieldboss.objects.RewardType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -34,7 +31,8 @@ public class AdminCommand extends BetterCommand {
                 new ForceSpawnArgument(),
                 new RewardArgument(),
                 new ReloadArgument(),
-                new TimeGUIOpenArgument()
+                new TimeGUIOpenArgument(),
+                new CooldownResetArgument()
         );
     }
 

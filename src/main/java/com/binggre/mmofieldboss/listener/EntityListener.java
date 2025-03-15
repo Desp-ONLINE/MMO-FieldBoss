@@ -15,6 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
@@ -24,7 +25,7 @@ public class EntityListener implements Listener {
     private final FieldBossRepository fieldBossRepository = MMOFieldBoss.getPlugin().getFieldBossRepository();
     private final MetadataManager metadataManager = MMOFieldBoss.getPlugin().getMetadataManager();
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onDamage(EntityDamageByEntityEvent event) {
         Entity e1 = event.getDamager();
         if (!(e1 instanceof Player player)) {
@@ -39,11 +40,12 @@ public class EntityListener implements Listener {
             PlayerJoinBoss playerJoinBoss = playerFieldBoss.getJoin(fieldBossId);
 
             if (playerJoinBoss.isCooldown(fieldBoss)) {
+                event.setCancelled(true);
                 return;
             }
 
             playerJoinBoss.setNowJoinedId(fieldBossId);
-            playerJoinBoss.addDamage(player, event.getDamage());
+            playerJoinBoss.addDamage(event.getDamage());
         });
     }
 
