@@ -8,7 +8,6 @@ import com.binggre.mmofieldboss.config.FieldBossConfig;
 import com.binggre.mmofieldboss.config.GUIConfig;
 import com.binggre.mmofieldboss.listener.EntityListener;
 import com.binggre.mmofieldboss.listener.PlayerListener;
-import com.binggre.mmofieldboss.listener.velocity.BroadcastVelocityListener;
 import com.binggre.mmofieldboss.listener.velocity.ReloadVelocityListener;
 import com.binggre.mmofieldboss.objects.FieldBossRedis;
 import com.binggre.mmofieldboss.repository.FieldBossRedisRepository;
@@ -65,7 +64,6 @@ public final class MMOFieldBoss extends BinggrePlugin {
 
         SocketClient socket = VelocityClient.getInstance().getConnectClient();
         socket.registerListener(ReloadVelocityListener.class);
-        socket.registerListener(BroadcastVelocityListener.class);
 
         new SpawnScheduler().runTaskTimer(this, 0, 30L);
     }

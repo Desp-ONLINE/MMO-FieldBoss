@@ -5,7 +5,6 @@ import com.binggre.binggreapi.utils.NumberUtil;
 import com.binggre.binggreapi.utils.metadata.MetadataManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.FieldBossConfig;
-import com.binggre.mmofieldboss.listener.velocity.BroadcastVelocityListener;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
 import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
@@ -15,6 +14,9 @@ import com.binggre.mmomail.api.MailAPI;
 import com.binggre.mmomail.objects.Mail;
 import com.binggre.mmoplayerdata.MMOPlayerDataPlugin;
 import com.binggre.velocitysocketclient.VelocityClient;
+import com.binggre.velocitysocketclient.listener.BroadcastComponentVelocityListener;
+import com.binggre.velocitysocketclient.listener.BroadcastVelocityListener;
+import com.binggre.velocitysocketclient.listener.MessageComponentVelocityListener;
 import com.google.gson.annotations.SerializedName;
 import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
@@ -22,6 +24,8 @@ import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.core.mobs.DespawnMode;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -70,12 +74,17 @@ public class FieldBoss {
         String serverName = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig().getServerName(Bukkit.getPort());
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
         String broadcastSpawn = config.getBroadcastSpawn()
-                .replace("<channel>", serverName)
-                .replace("<boss>", spawnedBoss.getName());
+                .replace("<channel>", serverName);
+        TextReplacementConfig replaceConfig = TextReplacementConfig
+                .builder()
+                .match("<boss>")
+                .replacement(spawnedBoss.teamDisplayName())
+                .build();
+        Component message = Component.text(broadcastSpawn)
+                .replaceText(replaceConfig);
 
-        Bukkit.broadcast(Component.text(broadcastSpawn));
-        VelocityClient.getInstance().getConnectClient()
-                .send(BroadcastVelocityListener.class, serverName, spawnedBoss.getName());
+        Bukkit.broadcast(message);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastComponentVelocityListener.class, JSONComponentSerializer.json().serialize(message));
     }
 
     public void spawn() throws InvalidMobTypeException {
@@ -140,16 +149,6 @@ public class FieldBoss {
         Bukkit.getScheduler().cancelTask(task);
     }
 
-    public static void broadcast(String killer, String bestPlayer, double bestDamage, String bossName) {
-        FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
-        String broadcast = config.getBroadcastLastHit()
-                .replace("<player>", killer)
-                .replace("<boss>", bossName)
-                .replace("<best_player>", bestPlayer)
-                .replace("<best_damage>", NumberUtil.applyComma(bestDamage));
-        Bukkit.broadcast(Component.text(broadcast));
-    }
-
     public void onDeath(Player killer) {
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
         MailAPI mailAPI = MMOMail.getInstance().getMailAPI();
@@ -202,11 +201,22 @@ public class FieldBoss {
             String bestNickname = bestDamagePlayer.getNickname();
             double bestDamage = bestDamagePlayer.getJoin(id).getDamage();
 
-            String bossName = spawnedBoss.getName();
-            broadcast(lastNickname, bestNickname, bestDamage, bossName);
-            VelocityClient.getInstance().getConnectClient().send(BroadcastVelocityListener.class
-                    , lastNickname, bestNickname, bestDamage + "", bossName);
 
+
+            String broadcast = config.getBroadcastLastHit()
+                    .replace("<player>", killer.getName())
+                    .replace("<best_player>", bestNickname)
+                    .replace("<best_damage>", NumberUtil.applyComma(bestDamage));
+
+            TextReplacementConfig replace = TextReplacementConfig.builder()
+                    .match("<boss>")
+                    .replacement(spawnedBoss.teamDisplayName())
+                    .build();
+            Component message = Component.text(broadcast)
+                    .replaceText(replace);
+
+            Bukkit.broadcast(message);
+            VelocityClient.getInstance().getConnectClient().send(BroadcastComponentVelocityListener.class, JSONComponentSerializer.json().serialize(message));
             mailAPI.sendMail(lastNickname, lastHitMail);
         }
 
