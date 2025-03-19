@@ -6,7 +6,10 @@ import com.binggre.binggreapi.objects.items.CustomItemStack;
 import com.binggre.binggreapi.utils.ItemManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.GUIConfig;
+import com.binggre.mmofieldboss.objects.FieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBossRedis;
+import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
+import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
 import com.binggre.mmofieldboss.repository.FieldBossRedisRepository;
 import com.binggre.mmoplayerdata.MMOPlayerDataPlugin;
 import com.binggre.mmoplayerdata.config.Config;
@@ -35,10 +38,12 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
     public static void open(Player player) {
         TimeGUI timeGUI = new TimeGUI();
+        timeGUI.player = player;
         player.openInventory(timeGUI.inventory);
         timeGUI.refresh();
     }
 
+    private Player player;
     private int page = 1;
     private final Inventory inventory;
 
@@ -96,7 +101,10 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
                         String serverName = playerDataConfig.getServerName(redis.getPort()).replace("던전 ", "§f");
                         return serverName + " : " + getTimeString(redis);
                     })
-                    .toList();
+                    .collect(Collectors.toList());
+
+            lore.add("");
+            lore.add("§7 - §f" + getMyTime(bossId));
 
             ItemStack itemStack = customItemStack.getItemStack();
             ItemManager.setLore(itemStack, lore);
@@ -138,42 +146,37 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
         return page;
     }
 
+    private String getMyTime(int id) {
+        PlayerFieldBoss playerFieldBoss = MMOFieldBoss.getPlugin().getPlayerRepository().get(this.player.getUniqueId());
+        FieldBoss fieldBoss = MMOFieldBoss.getPlugin().getFieldBossRepository().get(id);
+        PlayerJoinBoss join = playerFieldBoss.getJoin(id);
+        LocalDateTime lastJoinTime = join.getLastJoinTime();
+        int lastJoinTimeHour = lastJoinTime.getHour();
+        return lastJoinTimeHour + fieldBoss.getInitRewardHour() + "시 이후부터 해당 필드보스를 처치할 수 있습니다.";
+    }
+
     private String getTimeString(FieldBossRedis fieldBossRedis) {
         StringBuilder builder = new StringBuilder("§f");
         LocalDateTime now = LocalDateTime.now();
-
         List<Integer> spawnHours = fieldBossRedis.getSpawnHours();
         int remainingMinutes = Integer.MAX_VALUE;
         int remainingHours = 0;
-
         for (Integer spawnHour : spawnHours) {
-            LocalDateTime spawnTime = LocalDateTime.of(now.toLocalDate(), LocalTime.of(spawnHour, 0)); // 스폰 시간이 현재 날짜 기준
-
-            if (spawnTime.isBefore(now)) {
-                spawnTime = spawnTime.plusDays(1);
-            }
-
+            LocalDateTime spawnTime = LocalDateTime.of(now.toLocalDate(), LocalTime.of(spawnHour.intValue(), 0));
+            if (spawnTime.isBefore(now))
+                spawnTime = spawnTime.plusDays(1L);
             Duration duration = Duration.between(now, spawnTime);
             long minutes = duration.toMinutes();
             if (minutes < remainingMinutes) {
-                remainingMinutes = (int) minutes;
+                remainingMinutes = (int)minutes;
                 remainingHours = remainingMinutes / 60;
             }
         }
-
-        builder.append(remainingHours).append("시간 ").append(remainingMinutes % 60).append("분 남았습니다. ( 매일 정각 ");
-
-        for (Integer spawnHour : spawnHours) {
-            builder.append(spawnHour).append("/ ");
-        }
-        if (builder.charAt(builder.length() - 1) == '/') {
-            builder.deleteCharAt(builder.length() - 1);
-        }
-        builder.append("시 스폰 )");
-
+        int id = fieldBossRedis.getFieldBossId();
+        FieldBoss fieldBoss = MMOFieldBoss.getPlugin().getFieldBossRepository().get(id);
+        builder.append("§a").append(spawnHours.getFirst()).append("§f시 부터 §a").append(fieldBoss.getInitRewardHour()).append(" §f시간 마다 등장합니다.");
         return builder.toString();
     }
-
 
     @Override
     public void onClick(InventoryClickEvent event) {
