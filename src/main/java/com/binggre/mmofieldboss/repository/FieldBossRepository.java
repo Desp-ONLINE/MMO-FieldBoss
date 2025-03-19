@@ -23,12 +23,13 @@ public class FieldBossRepository {
             for (FieldBoss value : cache.values()) {
                 value.cancelTask();
             }
-            cache.clear();
         }
+        cache.clear();
         readFiles(file -> {
             FieldBoss read = FileManager.read(FieldBoss.class, file);
             read.init();
             read.onInit();
+
             cache.put(read.getId(), read);
         });
     }

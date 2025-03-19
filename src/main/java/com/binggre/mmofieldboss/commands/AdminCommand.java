@@ -17,7 +17,7 @@ public class AdminCommand extends BetterCommand {
 
     @Override
     public String getCommand() {
-        return "필드보스";
+        return "fieldboss";
     }
 
     @Override

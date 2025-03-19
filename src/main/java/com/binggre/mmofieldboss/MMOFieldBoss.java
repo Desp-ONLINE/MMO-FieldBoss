@@ -17,6 +17,7 @@ import com.binggre.mmofieldboss.scheduler.SpawnScheduler;
 import com.binggre.velocitysocketclient.VelocityClient;
 import com.binggre.velocitysocketclient.socket.SocketClient;
 import lombok.Getter;
+import org.swlab.etcetera.EtCetera;
 
 import java.util.HashMap;
 
@@ -65,7 +66,9 @@ public final class MMOFieldBoss extends BinggrePlugin {
         SocketClient socket = VelocityClient.getInstance().getConnectClient();
         socket.registerListener(ReloadVelocityListener.class);
 
-        new SpawnScheduler().runTaskTimer(this, 0, 30L);
+        if (!EtCetera.getChannelType().equalsIgnoreCase("lobby")) {
+            new SpawnScheduler().runTaskTimer(this, 0, 30L);
+        }
     }
 
     @Override

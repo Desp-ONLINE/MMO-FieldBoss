@@ -10,7 +10,7 @@ import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
 import com.binggre.mmofieldboss.repository.PlayerRepository;
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
-import org.bukkit.Bukkit;
+import net.Indyuce.mmoitems.api.event.MMOItemReforgeFinishEvent;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -41,6 +41,9 @@ public class EntityListener implements Listener {
 
             if (playerJoinBoss.isCooldown(fieldBoss)) {
                 event.setCancelled(true);
+                String cooldownMessage = MMOFieldBoss.getPlugin().getFieldBossConfig().getCooldownMessage()
+                        .replace("<hour>", playerJoinBoss.getCooldownHour(fieldBoss) + "");
+                player.sendMessage(cooldownMessage);
                 return;
             }
 

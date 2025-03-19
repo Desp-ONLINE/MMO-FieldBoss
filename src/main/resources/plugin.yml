@@ -2,5 +2,6 @@ name: MMOFieldBoss
 version: '1.0.0'
 main: com.binggre.mmofieldboss.MMOFieldBoss
 api-version: '1.20'
+depend: ['BinggreAPI', 'EtCetera']
 commands:
-  필드보스:
+  fieldboss:

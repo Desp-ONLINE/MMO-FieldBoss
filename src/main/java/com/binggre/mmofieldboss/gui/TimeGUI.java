@@ -83,6 +83,7 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
         Map<Integer, List<FieldBossRedis>> groupedByBossId = redisRepository.values().stream()
                 .filter(redis -> fieldBossIds.contains(redis.getFieldBossId()))
+                .filter(redis -> redis.getPort() != 30066)
                 .sorted(Comparator.comparing(FieldBossRedis::getPort))
                 .collect(Collectors.groupingBy(FieldBossRedis::getFieldBossId));
 

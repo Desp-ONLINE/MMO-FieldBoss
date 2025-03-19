@@ -5,7 +5,6 @@ import com.binggre.mmofieldboss.config.FieldBossConfig;
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.entity.Player;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -29,6 +28,16 @@ public class PlayerJoinBoss {
     private LocalDateTime getResetTime() {
         return LocalDateTime.of(2000, 1, 1, 1, 1, 1);
     }
+
+    public long getCooldownHour(FieldBoss fieldBoss) {
+        LocalDateTime now = LocalDateTime.now();
+        int initRewardHour = fieldBoss.getInitRewardHour();
+
+        long elapsedHours = Duration.between(lastJoinTime, now).toHours();
+        long remainingHours = initRewardHour - elapsedHours;
+        return remainingHours > 0 ? remainingHours : 0;
+    }
+
 
     public boolean isCooldown(FieldBoss fieldBoss) {
         LocalDateTime now = LocalDateTime.now();
