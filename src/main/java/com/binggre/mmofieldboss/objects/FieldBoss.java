@@ -138,6 +138,7 @@ public class FieldBoss {
 
     public void despawn() {
         spawnedBoss.remove();
+        spawnedBoss = null;
     }
 
     public void cancelTask() {

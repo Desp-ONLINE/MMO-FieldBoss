@@ -67,7 +67,7 @@ public final class MMOFieldBoss extends BinggrePlugin {
         socket.registerListener(ReloadVelocityListener.class);
 
         if (!EtCetera.getChannelType().equalsIgnoreCase("lobby")) {
-            new SpawnScheduler().runTaskTimer(this, 0, 30L);
+            new SpawnScheduler().runTaskTimer(this, 0, 5L);
         }
     }
 
