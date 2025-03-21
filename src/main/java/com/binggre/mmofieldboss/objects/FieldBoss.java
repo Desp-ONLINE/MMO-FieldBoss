@@ -149,8 +149,6 @@ public class FieldBoss {
     }
 
     public void onKill(Player killer) {
-        spawnedBoss = null;
-
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
         MailAPI mailAPI = MMOMail.getInstance().getMailAPI();
         String mailSender = config.getMailSender();
@@ -230,5 +228,6 @@ public class FieldBoss {
             player.getJoin(id).completeJoin();
             playerRepository.save(player);
         }
+        spawnedBoss = null;
     }
 }
