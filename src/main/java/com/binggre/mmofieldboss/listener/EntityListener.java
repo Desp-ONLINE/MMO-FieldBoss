@@ -10,7 +10,6 @@ import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
 import com.binggre.mmofieldboss.repository.PlayerRepository;
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
-import net.Indyuce.mmoitems.api.event.MMOItemReforgeFinishEvent;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -60,7 +59,7 @@ public class EntityListener implements Listener {
         }
 
         logic(event.getEntity(), fieldBoss -> {
-            fieldBoss.onDeath(player);
+            fieldBoss.onKill(player);
         });
     }
 

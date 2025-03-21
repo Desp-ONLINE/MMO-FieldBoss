@@ -148,7 +148,9 @@ public class FieldBoss {
         Bukkit.getScheduler().cancelTask(task);
     }
 
-    public void onDeath(Player killer) {
+    public void onKill(Player killer) {
+        spawnedBoss = null;
+
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
         MailAPI mailAPI = MMOMail.getInstance().getMailAPI();
         String mailSender = config.getMailSender();
