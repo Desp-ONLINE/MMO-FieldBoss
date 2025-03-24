@@ -4,6 +4,7 @@ import com.binggre.binggreapi.functions.HolderListener;
 import com.binggre.binggreapi.functions.PageInventory;
 import com.binggre.binggreapi.objects.items.CustomItemStack;
 import com.binggre.binggreapi.utils.ItemManager;
+import com.binggre.binggreapi.utils.NumberUtil;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.GUIConfig;
 import com.binggre.mmofieldboss.objects.FieldBoss;
@@ -27,9 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
@@ -66,8 +65,7 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
     private Inventory create() {
         GUIConfig config = config();
-        Inventory inventory = Bukkit.createInventory(this, config.getSize() * 9, Component.text(config.getTitle()));
-        return inventory;
+        return Bukkit.createInventory(this, config.getSize() * 9, Component.text(config.getTitle()));
     }
 
     private void refresh() {
@@ -78,8 +76,6 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
         if (fieldBossIds == null) {
             return;
         }
-
-        Config playerDataConfig = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig();
 
         Map<Integer, List<FieldBossRedis>> groupedByBossId = redisRepository.values().stream()
                 .filter(redis -> fieldBossIds.contains(redis.getFieldBossId()))
@@ -97,13 +93,30 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
                 return;
             }
 
-            List<String> lore = redisList.stream()
-                    .map(redis -> {
-                        String serverName = playerDataConfig.getServerName(redis.getPort()).replace("던전 ", "§f");
-                        return serverName + " : " + getTimeString(redis);
-                    })
-                    .collect(Collectors.toList());
+            FieldBossRedis closestRedis = redisList.stream()
+                    .min(Comparator.comparingLong(redis -> {
+                        LocalDateTime now = LocalDateTime.now();
+                        List<Integer> spawnHours = redis.getSpawnHours();
+                        LocalDateTime nextSpawn = spawnHours.stream()
+                                .map(hour -> {
+                                    LocalDateTime candidate = now.withHour(hour)
+                                            .withMinute(0)
+                                            .withSecond(0)
+                                            .withNano(0);
+                                    if (!candidate.isAfter(now)) {
+                                        candidate = candidate.plusDays(1);
+                                    }
+                                    return candidate;
+                                })
+                                .min(Comparator.comparingLong(candidate -> Duration.between(now, candidate).toMillis()))
+                                .orElse(now);
+                        return Duration.between(now, nextSpawn).toMillis();
+                    })).orElse(null);
 
+            String timeString = getTimeString(closestRedis);
+
+            List<String> lore = new ArrayList<>();
+            lore.add(timeString);
             lore.add("");
             lore.add("§7 - §f" + getMyTime(bossId));
 
@@ -112,6 +125,42 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             ItemManager.setCustomModelData(itemStack, customItemStack.getCustomModelData());
             inventory.setItem(customItemStack.getSlot(), itemStack);
         });
+    }
+
+    private String getTimeString(FieldBossRedis fieldBossRedis) {
+        LocalDateTime now = LocalDateTime.now();
+        List<Integer> spawnHours = fieldBossRedis.getSpawnHours();
+
+        if (spawnHours == null || spawnHours.isEmpty()) {
+            return "스폰 시간이 설정되어 있지 않습니다.";
+        }
+
+        LocalDateTime nextSpawn = spawnHours.stream()
+                .map(hour -> {
+                    LocalDateTime candidate = now.withHour(hour)
+                            .withMinute(0)
+                            .withSecond(0)
+                            .withNano(0);
+                    if (!candidate.isAfter(now)) {
+                        candidate = candidate.plusDays(1);
+                    }
+                    return candidate;
+                })
+                .min(Comparator.comparingLong(candidate -> Duration.between(now, candidate).toMillis()))
+                .orElse(now);
+
+        Duration duration = Duration.between(now, nextSpawn);
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes() % 60;
+
+        Config playerDataConfig = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig();
+        String serverName = playerDataConfig.getServerName(fieldBossRedis.getPort());
+
+        if (hours == 0) {
+            return String.format("§7다음 출현은 §f%d분 §7후에 §f%s §7에서 등장합니다.", minutes, serverName);
+        } else {
+            return String.format("§7다음 출현은 §f%d시간 %d분 §7후에 §f%s §7에서 등장합니다.", hours, minutes, serverName);
+        }
     }
 
 
@@ -148,36 +197,26 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
     }
 
     private String getMyTime(int id) {
-        PlayerFieldBoss playerFieldBoss = MMOFieldBoss.getPlugin().getPlayerRepository().get(this.player.getUniqueId());
-        FieldBoss fieldBoss = MMOFieldBoss.getPlugin().getFieldBossRepository().get(id);
+        PlayerFieldBoss playerFieldBoss = MMOFieldBoss.getPlugin()
+                .getPlayerRepository().get(this.player.getUniqueId());
+        FieldBoss fieldBoss = MMOFieldBoss.getPlugin()
+                .getFieldBossRepository().get(id);
+
         PlayerJoinBoss join = playerFieldBoss.getJoin(id);
         LocalDateTime lastJoinTime = join.getLastJoinTime();
-        int lastJoinTimeHour = lastJoinTime.getHour();
-        return lastJoinTimeHour + fieldBoss.getInitRewardHour() + "시 이후부터 해당 필드보스를 처치할 수 있습니다.";
+        int joinHour = lastJoinTime.getHour();
+        int initRewardHour = fieldBoss.getInitRewardHour();
+
+        if (joinHour >= initRewardHour) {
+            return "§a처치에 관여할 수 있습니다.";
+        }
+
+        return String.format("§c%d시에 처치에 관여했기 때문에, %d시부터 처치할 수 있습니다.",
+                joinHour, initRewardHour);
     }
 
-    private String getTimeString(FieldBossRedis fieldBossRedis) {
-        StringBuilder builder = new StringBuilder("§f");
-        LocalDateTime now = LocalDateTime.now();
-        List<Integer> spawnHours = fieldBossRedis.getSpawnHours();
-        int remainingMinutes = Integer.MAX_VALUE;
-        int remainingHours = 0;
-        for (Integer spawnHour : spawnHours) {
-            LocalDateTime spawnTime = LocalDateTime.of(now.toLocalDate(), LocalTime.of(spawnHour.intValue(), 0));
-            if (spawnTime.isBefore(now))
-                spawnTime = spawnTime.plusDays(1L);
-            Duration duration = Duration.between(now, spawnTime);
-            long minutes = duration.toMinutes();
-            if (minutes < remainingMinutes) {
-                remainingMinutes = (int)minutes;
-                remainingHours = remainingMinutes / 60;
-            }
-        }
-        int id = fieldBossRedis.getFieldBossId();
-        FieldBoss fieldBoss = MMOFieldBoss.getPlugin().getFieldBossRepository().get(id);
-        builder.append("§a").append(spawnHours.getFirst()).append("§f시 부터 §a").append(fieldBoss.getInitRewardHour()).append(" §f시간 마다 등장합니다.");
-        return builder.toString();
-    }
+
+
 
     @Override
     public void onClick(InventoryClickEvent event) {
