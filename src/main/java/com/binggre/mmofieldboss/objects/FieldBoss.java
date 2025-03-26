@@ -4,6 +4,9 @@ import com.binggre.binggreapi.objects.items.CustomItemStack;
 import com.binggre.binggreapi.utils.NumberUtil;
 import com.binggre.binggreapi.utils.metadata.MetadataManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
+import com.binggre.mmofieldboss.api.FieldBossDeathEvent;
+import com.binggre.mmofieldboss.api.FieldBossDespawnEvent;
+import com.binggre.mmofieldboss.api.FieldBossSpawnEvent;
 import com.binggre.mmofieldboss.config.FieldBossConfig;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
 import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
@@ -98,6 +101,9 @@ public class FieldBoss {
         fieldBossRepository.save(this);
         startScheduler();
         broadcast();
+
+        FieldBossSpawnEvent event = new FieldBossSpawnEvent(this);
+        Bukkit.getPluginManager().callEvent(event);
     }
 
     public void onInit() {
@@ -137,6 +143,9 @@ public class FieldBoss {
     }
 
     public void despawn() {
+        FieldBossDespawnEvent event = new FieldBossDespawnEvent(this);
+        Bukkit.getPluginManager().callEvent(event);
+
         spawnedBoss.remove();
         spawnedBoss = null;
     }
@@ -228,6 +237,9 @@ public class FieldBoss {
             player.getJoin(id).completeJoin();
             playerRepository.save(player);
         }
+        FieldBossDeathEvent event = new FieldBossDeathEvent(this);
+        Bukkit.getPluginManager().callEvent(event);
+
         spawnedBoss = null;
     }
 }
