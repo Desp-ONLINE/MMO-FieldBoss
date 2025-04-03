@@ -237,9 +237,8 @@ public class FieldBoss {
             player.getJoin(id).completeJoin();
             playerRepository.save(player);
         }
-        FieldBossDeathEvent event = new FieldBossDeathEvent(this);
+        FieldBossDeathEvent event = new FieldBossDeathEvent(this, lastHitPlayer, bestDamagePlayer, validPlayers);
         Bukkit.getPluginManager().callEvent(event);
-
         spawnedBoss = null;
     }
 }
