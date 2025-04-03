@@ -4,7 +4,6 @@ import com.binggre.binggreapi.functions.HolderListener;
 import com.binggre.binggreapi.functions.PageInventory;
 import com.binggre.binggreapi.objects.items.CustomItemStack;
 import com.binggre.binggreapi.utils.ItemManager;
-import com.binggre.binggreapi.utils.NumberUtil;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.GUIConfig;
 import com.binggre.mmofieldboss.objects.FieldBoss;
@@ -27,8 +26,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
@@ -203,19 +204,14 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
                 .getFieldBossRepository().get(id);
 
         PlayerJoinBoss join = playerFieldBoss.getJoin(id);
-        LocalDateTime lastJoinTime = join.getLastJoinTime();
-        int joinHour = lastJoinTime.getHour();
-        int initRewardHour = fieldBoss.getInitRewardHour();
-
-        if (joinHour >= initRewardHour) {
+        long cooldownHour = join.getCooldownHour(fieldBoss);
+        int lastJoinHour = join.getLastJoinTime().getHour();
+        if (cooldownHour == 0) {
             return "§a처치에 관여할 수 있습니다.";
         }
-
         return String.format("§c%d시에 처치에 관여했기 때문에, %d시부터 처치할 수 있습니다.",
-                joinHour, initRewardHour);
+                lastJoinHour, lastJoinHour + fieldBoss.getInitRewardHour());
     }
-
-
 
 
     @Override
