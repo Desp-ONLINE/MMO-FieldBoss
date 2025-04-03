@@ -1,5 +1,5 @@
 name: MMOFieldBoss
-version: '1.0.0'
+version: '${version}'
 main: com.binggre.mmofieldboss.MMOFieldBoss
 api-version: '1.20'
 depend: ['BinggreAPI', 'EtCetera']
