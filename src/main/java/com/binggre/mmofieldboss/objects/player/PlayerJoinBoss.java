@@ -38,7 +38,6 @@ public class PlayerJoinBoss {
         return remainingHours > 0 ? remainingHours : 0;
     }
 
-
     public boolean isCooldown(FieldBoss fieldBoss) {
         LocalDateTime now = LocalDateTime.now();
         int initRewardHour = fieldBoss.getInitRewardHour();

@@ -3,6 +3,7 @@ package com.binggre.mmofieldboss.objects.player;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mongolibraryplugin.base.MongoData;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -20,6 +21,10 @@ public class PlayerFieldBoss implements MongoData<UUID> {
         this.id = player.getUniqueId();
         this.nickname = player.getName();
         this.joinBoss = new HashMap<>();
+    }
+
+    public Player toPlayer() {
+        return Bukkit.getPlayer(id);
     }
 
     public void updateNickname(String name) {
