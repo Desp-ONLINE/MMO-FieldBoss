@@ -29,21 +29,28 @@ public class PlayerJoinBoss {
         return LocalDateTime.of(2000, 1, 1, 1, 1, 1);
     }
 
-    public long getCooldownHour(FieldBoss fieldBoss) {
-        LocalDateTime now = LocalDateTime.now();
-        int initRewardHour = fieldBoss.getInitRewardHour();
+    private LocalDateTime normalizeTime(LocalDateTime time) {
+        return time.withMinute(0).withSecond(0).withNano(0);
+    }
 
-        long elapsedHours = Duration.between(lastJoinTime, now).toHours();
-        long remainingHours = initRewardHour - elapsedHours;
-        return remainingHours > 0 ? remainingHours : 0;
+    public long getCooldownHour(FieldBoss fieldBoss) {
+        LocalDateTime now = normalizeTime(LocalDateTime.now());
+        LocalDateTime normalizedLastJoinTime = normalizeTime(lastJoinTime);
+
+        int initRewardHour = fieldBoss.getInitRewardHour();
+        long elapsedHours = Duration.between(normalizedLastJoinTime, now).toHours();
+
+        return Math.max(0, initRewardHour - elapsedHours);
     }
 
     public boolean isCooldown(FieldBoss fieldBoss) {
-        LocalDateTime now = LocalDateTime.now();
-        int initRewardHour = fieldBoss.getInitRewardHour();
+        LocalDateTime now = normalizeTime(LocalDateTime.now());
+        LocalDateTime normalizedLastJoinTime = normalizeTime(lastJoinTime);
 
-        return Duration.between(lastJoinTime, now).toHours() < initRewardHour;
+        int initRewardHour = fieldBoss.getInitRewardHour();
+        return Duration.between(normalizedLastJoinTime, now).toHours() < initRewardHour;
     }
+
 
     public boolean isAFK() {
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
