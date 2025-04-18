@@ -147,6 +147,7 @@ public class FieldBoss {
         Bukkit.getPluginManager().callEvent(event);
 
         spawnedBoss.remove();
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mm m k " + mythicMob);
         spawnedBoss = null;
     }
 
