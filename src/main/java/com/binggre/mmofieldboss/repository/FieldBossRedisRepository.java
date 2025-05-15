@@ -39,11 +39,9 @@ public class FieldBossRedisRepository extends MongoRedisRepository<String, Field
         FieldBossRepository fieldBossRepository = MMOFieldBoss.getPlugin().getFieldBossRepository();
         for (FieldBoss fieldBoss : fieldBossRepository.values()) {
             String bossName = getBossName(fieldBoss.getMythicMob());
-            String channel = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig().getServerName(Bukkit.getPort());
 
             FieldBossRedis redis = new FieldBossRedis(
                     toId(fieldBoss.getId()),
-                    channel,
                     bossName,
                     fieldBoss.getSpawnHours(),
                     fieldBoss.getItemStack()
