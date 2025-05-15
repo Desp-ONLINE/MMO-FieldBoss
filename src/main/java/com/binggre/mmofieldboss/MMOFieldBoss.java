@@ -36,6 +36,9 @@ public final class MMOFieldBoss extends BinggrePlugin {
     private FieldBossRepository fieldBossRepository;
     private PlayerRepository playerRepository;
 
+
+    private FieldBossPlaceHolder placeHolder;
+
     @Override
     public void onEnable() {
         plugin = this;
@@ -69,6 +72,9 @@ public final class MMOFieldBoss extends BinggrePlugin {
         if (!EtCetera.getChannelType().equalsIgnoreCase("lobby")) {
             new SpawnScheduler().runTaskTimer(this, 0, 5L);
         }
+
+        placeHolder = new FieldBossPlaceHolder(this);
+        placeHolder.register();
     }
 
     @Override
@@ -77,5 +83,6 @@ public final class MMOFieldBoss extends BinggrePlugin {
         fieldBossConfig.save();
         guiConfig.save();
         playerRepository.onDisable();
+        placeHolder.unregister();
     }
 }

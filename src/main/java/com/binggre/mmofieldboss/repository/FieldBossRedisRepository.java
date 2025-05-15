@@ -4,6 +4,7 @@ import com.binggre.binggreapi.utils.file.FileManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBossRedis;
+import com.binggre.mmoplayerdata.MMOPlayerDataPlugin;
 import com.binggre.mongolibraryplugin.base.MongoRedisRepository;
 import com.binggre.velocitysocketclient.VelocityClient;
 import io.lumine.mythic.api.mobs.MythicMob;
@@ -38,12 +39,15 @@ public class FieldBossRedisRepository extends MongoRedisRepository<String, Field
         FieldBossRepository fieldBossRepository = MMOFieldBoss.getPlugin().getFieldBossRepository();
         for (FieldBoss fieldBoss : fieldBossRepository.values()) {
             String bossName = getBossName(fieldBoss.getMythicMob());
+            String channel = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig().getServerName(Bukkit.getPort());
 
             FieldBossRedis redis = new FieldBossRedis(
                     toId(fieldBoss.getId()),
+                    channel,
                     bossName,
                     fieldBoss.getSpawnHours(),
-                    fieldBoss.getItemStack());
+                    fieldBoss.getItemStack()
+            );
             putIn(redis);
         }
     }
@@ -55,7 +59,7 @@ public class FieldBossRedisRepository extends MongoRedisRepository<String, Field
         }
     }
 
-    private String toId(int id) {
+    public String toId(int id) {
         return id + "-" + Bukkit.getPort();
     }
 
