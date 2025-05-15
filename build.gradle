@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.binggre'
-version = '1.0.3'
+version = '1.0.4'
 
 jar {
     destinationDirectory.set(file("C:\\Users\\pseon\\Desktop\\OrderServer 1.20.1-Velocity\\plugins"))
@@ -19,11 +19,15 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
+    maven {
+        url = 'https://repo.extendedclip.com/releases/'
+    }
 }
 
 dependencies {
     compileOnly fileTree(include: ['*.jar'], 'dir': 'libs')
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly 'me.clip:placeholderapi:2.11.6'
 
     implementation 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
