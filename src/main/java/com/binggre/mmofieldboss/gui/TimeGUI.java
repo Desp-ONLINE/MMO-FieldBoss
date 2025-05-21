@@ -120,6 +120,8 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             lore.add(timeString);
             lore.add("");
             lore.add("§7 - §f" + getMyTime(bossId));
+            lore.add("");
+            lore.add("§e  &n&o클릭하여 남은 필드 보스 쿨타임을 화면 왼쪽에 띄울 수 있습니다!");
 
             ItemStack itemStack = customItemStack.getItemStack();
             ItemManager.setLore(itemStack, lore);
@@ -224,17 +226,24 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_1");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_2");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_3");
+            player.sendMessage("§a 성공적으로 §f§n애쉬우드§a 보스 쿨타임을 표시했습니다.");
+            player.closeInventory();
         }
         if(event.getSlot() == 12){
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_1");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_2");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " +player.getName()+" fieldboss_hud_3");
+            player.sendMessage("§a 성공적으로 §f§n화무사§a 보스 쿨타임을 표시했습니다.");
+            player.closeInventory();
         }
         if(event.getSlot() == 14){
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_1");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_2");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_3");
+            player.sendMessage("§a 성공적으로 §f§n아이스 워든§a 보스 쿨타임을 표시했습니다.");
+            player.closeInventory();
         }
+
     }
 
     @Override
