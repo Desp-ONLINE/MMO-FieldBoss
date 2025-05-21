@@ -220,6 +220,21 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             return;
         }
         event.setCancelled(true);
+        if(event.getSlot() == 10){
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_1");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_2");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_3");
+        }
+        if(event.getSlot() == 12){
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_1");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_2");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " +player.getName()+" fieldboss_hud_3");
+        }
+        if(event.getSlot() == 14){
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_1");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_2");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_3");
+        }
     }
 
     @Override
