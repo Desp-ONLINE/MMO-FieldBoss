@@ -81,8 +81,6 @@ public final class MMOFieldBoss extends BinggrePlugin {
     @Override
     public void onDisable() {
         redisRepository.onDisable();
-        fieldBossConfig.save();
-        guiConfig.save();
         playerRepository.onDisable();
         placeHolder.unregister();
     }
