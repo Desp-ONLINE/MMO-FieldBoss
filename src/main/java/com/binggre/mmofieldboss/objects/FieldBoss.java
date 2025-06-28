@@ -127,7 +127,10 @@ public class FieldBoss {
                     return;
                 }
                 String spawnTimeString = (String) metadataManager.getEntity(spawnedBoss, BossKey.TIME);
-
+                if (spawnTimeString == null) {
+                    cancelTask();
+                    return;
+                }
                 LocalDateTime spawnTime = LocalDateTime.parse(Objects.requireNonNull(spawnTimeString));
                 LocalDateTime now = LocalDateTime.now();
 
