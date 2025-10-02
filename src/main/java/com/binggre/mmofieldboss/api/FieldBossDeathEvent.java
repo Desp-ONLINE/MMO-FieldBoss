@@ -14,6 +14,10 @@ public class FieldBossDeathEvent extends FieldBossEvent {
 
     private static final HandlerList handlers = new HandlerList();
 
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
     private final PlayerFieldBoss killer;
     private final PlayerFieldBoss bestDamager;
     private final List<PlayerFieldBoss> damagers;
