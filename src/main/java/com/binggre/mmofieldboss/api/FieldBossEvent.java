@@ -7,6 +7,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public abstract class FieldBossEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
