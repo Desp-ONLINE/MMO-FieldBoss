@@ -234,6 +234,7 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_1");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_2");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " +player.getName()+" fieldboss_hud_3");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " +player.getName()+" fieldboss_hud_5");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " +player.getName()+" fieldboss_hud_4");
             player.sendMessage("§a 성공적으로 §f§n화무사§a 보스 쿨타임을 표시했습니다.");
             player.closeInventory();
@@ -243,6 +244,7 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_2");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_3");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_4");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_5");
             player.sendMessage("§a 성공적으로 §f§n아이스 워든§a 보스 쿨타임을 표시했습니다.");
             player.closeInventory();
         }
@@ -250,8 +252,18 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_1");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_2");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_3");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_5");
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_4");
             player.sendMessage("§a 성공적으로 §f§n테네브리스§a 보스 쿨타임을 표시했습니다.");
+            player.closeInventory();
+        }
+        if(event.getSlot() == 28){
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_1");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_2");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_3");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove "+player.getName()+" fieldboss_hud_4");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add "+player.getName()+" fieldboss_hud_5");
+            player.sendMessage("§a 성공적으로 §f§n트와일라잇§a 보스 쿨타임을 표시했습니다.");
             player.closeInventory();
         }
 
