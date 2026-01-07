@@ -61,6 +61,12 @@ public class FieldBossRedisRepository extends MongoRedisRepository<String, Field
         return id + "-" + Bukkit.getPort();
     }
 
+    @Override
+    public void drop() {
+        clear();
+        super.drop();
+    }
+
     private String getBossName(String mythicMobId) {
         BukkitAPIHelper bukkitAPIHelper = new BukkitAPIHelper();
         MythicMob mythicMob = bukkitAPIHelper.getMythicMob(mythicMobId);

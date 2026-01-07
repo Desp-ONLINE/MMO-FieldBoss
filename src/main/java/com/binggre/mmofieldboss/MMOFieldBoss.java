@@ -8,6 +8,7 @@ import com.binggre.mmofieldboss.config.FieldBossConfig;
 import com.binggre.mmofieldboss.config.GUIConfig;
 import com.binggre.mmofieldboss.listener.EntityListener;
 import com.binggre.mmofieldboss.listener.PlayerListener;
+import com.binggre.mmofieldboss.listener.velocity.FieldBossVelocityListener;
 import com.binggre.mmofieldboss.listener.velocity.ReloadVelocityListener;
 import com.binggre.mmofieldboss.objects.FieldBossRedis;
 import com.binggre.mmofieldboss.repository.FieldBossRedisRepository;
@@ -18,6 +19,7 @@ import com.binggre.velocitysocketclient.VelocityClient;
 import com.binggre.velocitysocketclient.socket.SocketClient;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.swlab.etcetera.EtCetera;
 
 import java.util.HashMap;
@@ -69,6 +71,7 @@ public final class MMOFieldBoss extends BinggrePlugin {
 
         SocketClient socket = VelocityClient.getInstance().getConnectClient();
         socket.registerListener(ReloadVelocityListener.class);
+        socket.registerListener(FieldBossVelocityListener.class);
 
         if (EtCetera.getChannelType().equals("dungeon") && (EtCetera.getChannelNumber() <= 3)) {
             new SpawnScheduler().runTaskTimer(this, 0, 5L);
@@ -76,6 +79,13 @@ public final class MMOFieldBoss extends BinggrePlugin {
 
         placeHolder = new FieldBossPlaceHolder(this);
         placeHolder.register();
+
+        Player player = Bukkit.getPlayer("BingleBangleSoju");
+        if (player != null) {
+            for (FieldBossRedis value : redisRepository.values()) {
+                player.sendMessage(value.getBossName() + " : " + value.getId() + " : " + value.getSpawnHours().toString());
+            }
+        }
     }
 
     @Override

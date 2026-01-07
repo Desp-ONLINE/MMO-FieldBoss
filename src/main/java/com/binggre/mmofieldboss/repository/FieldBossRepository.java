@@ -43,6 +43,10 @@ public class FieldBossRepository {
         });
     }
 
+    public void putIn(FieldBoss fieldBoss) {
+        cache.put(fieldBoss.getId(), fieldBoss);
+    }
+
     public FieldBoss get(int id) {
         return cache.get(id);
     }
