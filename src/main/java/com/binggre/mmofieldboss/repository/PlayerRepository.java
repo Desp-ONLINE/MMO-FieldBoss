@@ -27,6 +27,16 @@ public class PlayerRepository extends MongoCachedRepository<UUID, PlayerFieldBos
         return FileManager.toObject(document.toJson(), PlayerFieldBoss.class);
     }
 
+    public PlayerFieldBoss getOrCreate(Player player) {
+        PlayerFieldBoss playerFieldBoss = get(player.getUniqueId());
+        if (playerFieldBoss == null) {
+            playerFieldBoss = new PlayerFieldBoss(player);
+            save(playerFieldBoss);
+            putIn(playerFieldBoss);
+        }
+        return playerFieldBoss;
+    }
+
     public PlayerFieldBoss onEnable(Player player) {
         UUID id = player.getUniqueId();
         PlayerFieldBoss playerFieldBoss = findById(id);

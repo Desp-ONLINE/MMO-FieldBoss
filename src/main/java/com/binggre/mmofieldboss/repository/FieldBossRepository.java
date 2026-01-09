@@ -3,7 +3,12 @@ package com.binggre.mmofieldboss.repository;
 import com.binggre.binggreapi.functions.Callback;
 import com.binggre.binggreapi.utils.file.FileManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
+import com.binggre.mmofieldboss.listener.velocity.FieldBossVelocityListener;
 import com.binggre.mmofieldboss.objects.FieldBoss;
+import com.binggre.mmofieldboss.objects.FieldBossRedis;
+import com.binggre.velocitysocketclient.VelocityClient;
+import com.binggre.velocitysocketclient.socket.SocketClient;
+import com.binggre.velocitysocketclient.socket.SocketResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -41,6 +46,20 @@ public class FieldBossRepository {
                 FileManager.write(file, fieldBoss);
             }
         });
+    }
+
+    public void requestPutAll() {
+        FieldBossRedisRepository redisRepository = MMOFieldBoss.getPlugin().getRedisRepository();
+
+        SocketClient connectClient = VelocityClient.getInstance().getConnectClient();
+        for (FieldBossRedis value : redisRepository.values()) {
+            int fieldBossId = value.getFieldBossId();
+            SocketResponse response = connectClient.request(FieldBossVelocityListener.class, fieldBossId + "");
+            String[] messages = response.getMessages();
+
+            FieldBoss fieldBoss = FileManager.toObject(messages[0], FieldBoss.class);
+            putIn(fieldBoss);
+        }
     }
 
     public void putIn(FieldBoss fieldBoss) {

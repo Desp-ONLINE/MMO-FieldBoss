@@ -80,12 +80,9 @@ public final class MMOFieldBoss extends BinggrePlugin {
         placeHolder = new FieldBossPlaceHolder(this);
         placeHolder.register();
 
-        Player player = Bukkit.getPlayer("BingleBangleSoju");
-        if (player != null) {
-            for (FieldBossRedis value : redisRepository.values()) {
-                player.sendMessage(value.getBossName() + " : " + value.getId() + " : " + value.getSpawnHours().toString());
-            }
-        }
+        getServer().getScheduler().runTask(this, () -> {
+           fieldBossRepository.requestPutAll();
+        });
     }
 
     @Override

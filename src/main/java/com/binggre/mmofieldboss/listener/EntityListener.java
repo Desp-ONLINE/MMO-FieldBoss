@@ -35,7 +35,7 @@ public class EntityListener implements Listener {
         logic(mythicMob, fieldBoss -> {
             int fieldBossId = fieldBoss.getId();
 
-            PlayerFieldBoss playerFieldBoss = playerRepository.get(player.getUniqueId());
+            PlayerFieldBoss playerFieldBoss = playerRepository.getOrCreate(player);
             PlayerJoinBoss playerJoinBoss = playerFieldBoss.getJoin(fieldBossId);
 
             if (playerJoinBoss.isCooldown(fieldBoss)) {
