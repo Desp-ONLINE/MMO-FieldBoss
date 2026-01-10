@@ -10,6 +10,7 @@ import com.binggre.mmofieldboss.listener.EntityListener;
 import com.binggre.mmofieldboss.listener.PlayerListener;
 import com.binggre.mmofieldboss.listener.velocity.FieldBossVelocityListener;
 import com.binggre.mmofieldboss.listener.velocity.ReloadVelocityListener;
+import com.binggre.mmofieldboss.objects.FieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBossRedis;
 import com.binggre.mmofieldboss.repository.FieldBossRedisRepository;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
@@ -18,6 +19,8 @@ import com.binggre.mmofieldboss.scheduler.SpawnScheduler;
 import com.binggre.velocitysocketclient.VelocityClient;
 import com.binggre.velocitysocketclient.socket.SocketClient;
 import lombok.Getter;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.swlab.etcetera.EtCetera;
 
 import java.util.HashMap;
@@ -79,7 +82,13 @@ public final class MMOFieldBoss extends BinggrePlugin {
         placeHolder.register();
 
         getServer().getScheduler().runTask(this, () -> {
-           fieldBossRepository.requestPutAllInRedis();
+            fieldBossRepository.requestPutAllInRedis();
+            for (FieldBoss value : fieldBossRepository.values()) {
+                Player player = Bukkit.getPlayer("BingleBangleSoju");
+                if (player != null) {
+                    player.sendMessage(value.getId() + " : " + value.getMythicMob());
+                }
+            }
         });
     }
 
