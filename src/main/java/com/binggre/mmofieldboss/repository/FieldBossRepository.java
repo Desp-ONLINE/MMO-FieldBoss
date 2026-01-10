@@ -30,7 +30,6 @@ public class FieldBossRepository {
         readFiles(file -> {
             FieldBoss read = FileManager.read(FieldBoss.class, file);
             read.init();
-            read.onInit();
 
             cache.put(read.getId(), read);
         });

@@ -76,6 +76,8 @@ public class FieldBoss {
     public void init() {
         rewards.values().forEach(FieldBossReward::init);
         spawnLocation = MMOFieldBoss.getPlugin().getFieldBossRepository().deserializeLocation(this, serializedLocation);
+
+        onInit();
     }
 
     private void broadcast() {
@@ -122,6 +124,7 @@ public class FieldBoss {
         }
         Entity entity = spawnLocation.getWorld().getEntity(UUID.fromString(lastSpawnedBossUUID));
         if (entity == null) {
+            lastSpawnedBossUUID = null;
             return;
         }
         spawnedBoss = entity;

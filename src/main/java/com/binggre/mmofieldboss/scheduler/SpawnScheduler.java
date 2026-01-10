@@ -37,7 +37,7 @@ public class SpawnScheduler extends BukkitRunnable {
             if (spawnedThisHour.contains(fieldBoss.getId())) {
                 continue;
             }
-            if (now.getMinute() != 0) {
+            if (now.getMinute() != 0 || now.getSecond() != 0) {
                 continue;
             }
             try {
