@@ -14,6 +14,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import redis.clients.jedis.Jedis;
 
+import java.io.File;
+
 public class FieldBossRedisRepository extends MongoRedisRepository<String, FieldBossRedis> {
 
     public FieldBossRedisRepository(Plugin plugin, String database, String collection, String key, Class<FieldBossRedis> managementClass) {
@@ -42,11 +44,23 @@ public class FieldBossRedisRepository extends MongoRedisRepository<String, Field
 
             FieldBossRedis redis = new FieldBossRedis(
                     toId(fieldBoss.getId()),
+                    false,
                     bossName,
                     fieldBoss.getSpawnHours(),
-                    fieldBoss.getItemStack()
+                    fieldBoss.getItemStack(),
+                    FileManager.toJson(fieldBoss)
             );
+            FieldBossRedis redis2 = new FieldBossRedis(
+                    fieldBoss.getId() + "",
+                    true,
+                    bossName,
+                    fieldBoss.getSpawnHours(),
+                    fieldBoss.getItemStack(),
+                    FileManager.toJson(fieldBoss)
+            );
+
             putIn(redis);
+            putIn(redis2);
         }
     }
 

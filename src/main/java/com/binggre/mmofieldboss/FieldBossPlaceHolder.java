@@ -75,6 +75,7 @@ public class FieldBossPlaceHolder extends PlaceholderExpansion {
         FieldBossRedisRepository redisRepository = plugin.getRedisRepository();
 
         return redisRepository.values().stream()
+                .filter(redis -> !redis.isJsonUseOnly())
                 .filter(redis -> redis.getFieldBossId() == id)
                 .filter(redis -> redis.getPort() != 30066)
                 .collect(Collectors.groupingBy(FieldBossRedis::getFieldBossId))

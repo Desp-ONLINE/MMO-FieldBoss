@@ -10,6 +10,7 @@ import com.binggre.mmofieldboss.api.FieldBossSpawnEvent;
 import com.binggre.mmofieldboss.config.FieldBossConfig;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
 import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
+import com.binggre.mmofieldboss.repository.FieldBossRedisRepository;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
 import com.binggre.mmofieldboss.repository.PlayerRepository;
 import com.binggre.mmomail.MMOMail;
@@ -62,6 +63,15 @@ public class FieldBoss {
     private transient Location spawnLocation;
     private transient Entity spawnedBoss;
     private transient int task = -1;
+
+    public FieldBoss(int id, String mythicMob, List<Integer> spawnHours, int initRewardHour) {
+        this.id = id;
+        this.mythicMob = mythicMob;
+        this.spawnHours = spawnHours;
+        this.initRewardHour = initRewardHour;
+        this.rewards = new HashMap<>();
+        this.despawnMinute = 10;
+    }
 
     public void init() {
         rewards.values().forEach(FieldBossReward::init);

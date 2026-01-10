@@ -84,6 +84,7 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
         }
 
         Map<Integer, List<FieldBossRedis>> groupedByBossId = redisRepository.values().stream()
+                .filter(redis -> !redis.isJsonUseOnly())
                 .filter(redis -> fieldBossIds.contains(redis.getFieldBossId()))
                 .filter(redis -> redis.getPort() != 30066)
                 .sorted(Comparator.comparing(FieldBossRedis::getPort))
@@ -211,16 +212,8 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
     private String getMyTime(int id) {
         PlayerFieldBoss playerFieldBoss = MMOFieldBoss.getPlugin().getPlayerRepository().get(this.player.getUniqueId());
-        FieldBoss fieldBoss = MMOFieldBoss.getPlugin().getFieldBossRepository().get(id);
-
-        if (fieldBoss == null) {
-            SocketResponse response = VelocityClient.getInstance().getConnectClient().request(FieldBossVelocityListener.class, id + "");
-            String[] messages = response.getMessages();
-
-            fieldBoss = FileManager.toObject(messages[0], FieldBoss.class);
-            MMOFieldBoss.getPlugin().getFieldBossRepository().putIn(fieldBoss);
-        }
-
+        FieldBossRedis fieldBossRedis = redisRepository.get(id + "");
+        FieldBoss fieldBoss = fieldBossRedis.toFieldBoss();
 
         PlayerJoinBoss join = playerFieldBoss.getJoin(id);
         long cooldownHour = join.getCooldownHour(fieldBoss);

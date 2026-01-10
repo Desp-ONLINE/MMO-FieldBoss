@@ -50,15 +50,9 @@ public class FieldBossRepository {
 
     public void requestPutAll() {
         FieldBossRedisRepository redisRepository = MMOFieldBoss.getPlugin().getRedisRepository();
-
-        SocketClient connectClient = VelocityClient.getInstance().getConnectClient();
         for (FieldBossRedis value : redisRepository.values()) {
-            int fieldBossId = value.getFieldBossId();
-            SocketResponse response = connectClient.request(FieldBossVelocityListener.class, fieldBossId + "");
-            String[] messages = response.getMessages();
+            putIn(value.toFieldBoss());
 
-            FieldBoss fieldBoss = FileManager.toObject(messages[0], FieldBoss.class);
-            putIn(fieldBoss);
         }
     }
 
