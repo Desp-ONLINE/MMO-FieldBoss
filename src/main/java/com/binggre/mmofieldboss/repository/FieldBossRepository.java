@@ -38,7 +38,7 @@ public class FieldBossRepository {
     public void save(FieldBoss fieldBoss) {
         readFiles(file -> {
             FieldBoss read = FileManager.read(FieldBoss.class, file);
-            if (read.getId() == fieldBoss.getId()) {
+            if (read.getId() == fieldBoss.getId() && fieldBoss.getOwnerPort() == Bukkit.getPort()) {
                 FileManager.write(file, fieldBoss);
             }
         });

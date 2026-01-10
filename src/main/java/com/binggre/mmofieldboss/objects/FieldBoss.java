@@ -25,6 +25,7 @@ import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import io.lumine.mythic.core.mobs.DespawnMode;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
@@ -57,21 +58,15 @@ public class FieldBoss {
     private int initRewardHour;
     private CustomItemStack itemStack;
 
+    @Setter
+    private int ownerPort;
+
     private Map<RewardType, FieldBossReward> rewards;
     private String lastSpawnedBossUUID;
 
     private transient Location spawnLocation;
     private transient Entity spawnedBoss;
     private transient int task = -1;
-
-    public FieldBoss(int id, String mythicMob, List<Integer> spawnHours, int initRewardHour) {
-        this.id = id;
-        this.mythicMob = mythicMob;
-        this.spawnHours = spawnHours;
-        this.initRewardHour = initRewardHour;
-        this.rewards = new HashMap<>();
-        this.despawnMinute = 10;
-    }
 
     public void init() {
         rewards.values().forEach(FieldBossReward::init);
