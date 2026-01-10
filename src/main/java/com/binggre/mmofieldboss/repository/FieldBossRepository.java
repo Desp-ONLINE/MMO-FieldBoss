@@ -3,12 +3,9 @@ package com.binggre.mmofieldboss.repository;
 import com.binggre.binggreapi.functions.Callback;
 import com.binggre.binggreapi.utils.file.FileManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
-import com.binggre.mmofieldboss.listener.velocity.FieldBossVelocityListener;
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBossRedis;
-import com.binggre.velocitysocketclient.VelocityClient;
-import com.binggre.velocitysocketclient.socket.SocketClient;
-import com.binggre.velocitysocketclient.socket.SocketResponse;
+import com.mongodb.client.FindIterable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -48,11 +45,14 @@ public class FieldBossRepository {
         });
     }
 
-    public void requestPutAll() {
+    public void requestPutAllInRedis() {
         FieldBossRedisRepository redisRepository = MMOFieldBoss.getPlugin().getRedisRepository();
         for (FieldBossRedis value : redisRepository.values()) {
-            putIn(value.toFieldBoss());
-
+            if (value.isJsonUseOnly()) {
+                FieldBoss fieldBoss = value.toFieldBoss();
+                fieldBoss.init();
+                putIn(fieldBoss);
+            }
         }
     }
 
