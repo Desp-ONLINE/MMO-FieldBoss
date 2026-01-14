@@ -3,6 +3,7 @@ package com.binggre.mmofieldboss.api;
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ public class FieldBossDeathEvent extends FieldBossEvent {
 
     public FieldBossDeathEvent(FieldBoss fieldBoss, PlayerFieldBoss killer, PlayerFieldBoss bestDamager, List<PlayerFieldBoss> damagers) {
         this.fieldBoss = fieldBoss;
-        this.bossEntity = fieldBoss.getSpawnedBoss();
+        this.bossEntity = fieldBoss.getDataThisServer().getSpawnedBoss();
         this.killer = killer;
         this.bestDamager = bestDamager;
         this.damagers = damagers;

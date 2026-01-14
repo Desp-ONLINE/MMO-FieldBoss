@@ -1,0 +1,246 @@
+package com.binggre.mmofieldboss.objects;
+
+import com.binggre.binggreapi.utils.NumberUtil;
+import com.binggre.binggreapi.utils.metadata.MetadataManager;
+import com.binggre.mmofieldboss.MMOFieldBoss;
+import com.binggre.mmofieldboss.api.FieldBossDeathEvent;
+import com.binggre.mmofieldboss.api.FieldBossDespawnEvent;
+import com.binggre.mmofieldboss.api.FieldBossSpawnEvent;
+import com.binggre.mmofieldboss.config.FieldBossConfig;
+import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
+import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
+import com.binggre.mmofieldboss.repository.FieldBossRepository;
+import com.binggre.mmofieldboss.repository.PlayerRepository;
+import com.binggre.mmomail.MMOMail;
+import com.binggre.mmomail.api.MailAPI;
+import com.binggre.mmomail.objects.Mail;
+import com.binggre.mmoplayerdata.MMOPlayerDataPlugin;
+import com.binggre.mongolibraryplugin.base.MongoUpdatable;
+import com.binggre.velocitysocketclient.VelocityClient;
+import com.binggre.velocitysocketclient.listener.BroadcastComponentVelocityListener;
+import com.google.gson.annotations.SerializedName;
+import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
+import io.lumine.mythic.bukkit.BukkitAPIHelper;
+import io.lumine.mythic.core.mobs.ActiveMob;
+import io.lumine.mythic.core.mobs.DespawnMode;
+import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
+import org.bson.Document;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Getter
+public class FieldBossData {
+
+    private static final PlayerRepository playerRepository = MMOFieldBoss.getPlugin().getPlayerRepository();
+    private static final FieldBossRepository fieldBossRepository = MMOFieldBoss.getPlugin().getFieldBossRepository();
+    private static final BukkitAPIHelper mythicMobAPI = new BukkitAPIHelper();
+    private static final MetadataManager metadataManager = MMOFieldBoss.getPlugin().getMetadataManager();
+
+    private int port;
+    @SerializedName("location")
+    private String serializedLocation;
+    private String lastSpawnedBossUUID;
+    private List<Integer> spawnHours;
+
+    private transient Location spawnLocation;
+    private transient Entity spawnedBoss;
+    private transient int task = -1;
+    private transient FieldBoss fieldBoss;
+
+    public void init(FieldBoss fieldBoss) {
+        this.fieldBoss = fieldBoss;
+        spawnLocation = MMOFieldBoss.getPlugin().getFieldBossRepository().deserializeLocation(fieldBoss, serializedLocation);
+        onInit();
+    }
+
+    private void broadcast() {
+        if (spawnedBoss == null) {
+            return;
+        }
+        String serverName = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig().getServerName(Bukkit.getPort());
+        FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
+        String broadcastSpawn = config.getBroadcastSpawn()
+                .replace("<channel>", serverName);
+        TextReplacementConfig replaceConfig = TextReplacementConfig
+                .builder()
+                .match("<boss>")
+                .replacement(spawnedBoss.teamDisplayName())
+                .build();
+        Component message = Component.text(broadcastSpawn)
+                .replaceText(replaceConfig);
+
+        Bukkit.broadcast(message);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastComponentVelocityListener.class, JSONComponentSerializer.json().serialize(message));
+    }
+
+    public void spawn() throws InvalidMobTypeException {
+        Entity entity = mythicMobAPI.spawnMythicMob(fieldBoss.getMythicMob(), spawnLocation);
+
+        metadataManager.setEntity(entity, BossKey.ID, fieldBoss.getId());
+        metadataManager.setEntity(entity, BossKey.TIME, LocalDateTime.now().toString());
+        spawnedBoss = entity;
+        lastSpawnedBossUUID = entity.getUniqueId().toString();
+
+        ActiveMob mythicMobInstance = mythicMobAPI.getMythicMobInstance(entity);
+        mythicMobInstance.setDespawnMode(DespawnMode.NEVER);
+        fieldBossRepository.update(fieldBoss, "lastSpawnedBossUUID", lastSpawnedBossUUID);
+        startScheduler();
+        broadcast();
+
+        FieldBossSpawnEvent event = new FieldBossSpawnEvent(fieldBoss);
+        Bukkit.getPluginManager().callEvent(event);
+    }
+
+    public void onInit() {
+        if (lastSpawnedBossUUID == null) {
+            return;
+        }
+        Entity entity = spawnLocation.getWorld().getEntity(UUID.fromString(lastSpawnedBossUUID));
+        if (entity == null) {
+            lastSpawnedBossUUID = null;
+            return;
+        }
+        spawnedBoss = entity;
+        startScheduler();
+    }
+
+    public void startScheduler() {
+        task = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (spawnedBoss == null || spawnedBoss.isDead()) {
+                    cancel();
+                    return;
+                }
+                String spawnTimeString = (String) metadataManager.getEntity(spawnedBoss, BossKey.TIME);
+                if (spawnTimeString == null) {
+                    cancelTask();
+                    return;
+                }
+                LocalDateTime spawnTime = LocalDateTime.parse(Objects.requireNonNull(spawnTimeString));
+                LocalDateTime now = LocalDateTime.now();
+
+                if (Duration.between(spawnTime, now).toMinutes() >= fieldBoss.getDespawnMinute()) {
+                    despawn();
+                    cancel();
+                }
+
+                // 플레이어
+
+            }
+        }.runTaskTimer(MMOFieldBoss.getPlugin(), 0, 20).getTaskId();
+    }
+
+    public void despawn() {
+        FieldBossDespawnEvent event = new FieldBossDespawnEvent(fieldBoss);
+        Bukkit.getPluginManager().callEvent(event);
+
+        spawnedBoss.remove();
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mm m k " + fieldBoss.getMythicMob());
+        spawnedBoss = null;
+    }
+
+    public void cancelTask() {
+        if (task == -1) {
+            return;
+        }
+        Bukkit.getScheduler().cancelTask(task);
+    }
+
+    public void onKill(Player killer) {
+        FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
+        MailAPI mailAPI = MMOMail.getInstance().getMailAPI();
+        String mailSender = config.getMailSender();
+
+        // 참여한 플레이어 필터링
+        List<PlayerFieldBoss> validPlayers = playerRepository.values().stream()
+                .filter(player -> {
+                    Integer id = fieldBoss.getId();
+                    PlayerJoinBoss join = player.getJoin(id);
+                    Integer nowJoinedId = join.getNowJoinedId();
+                    return nowJoinedId != null && nowJoinedId.equals(id) && !join.isAFK();
+                })
+                .collect(Collectors.toList());
+
+        if (validPlayers.isEmpty()) {
+            return;
+        }
+
+        // 메일 미리 생성
+        Map<RewardType, FieldBossReward> rewards = fieldBoss.getRewards();
+        Mail lastHitMail = mailAPI.createMail(mailSender, config.getLetterLastHit(), 0,
+                rewards.get(RewardType.LAST_HIT).getItemStacks(true));
+
+        Mail bestDamageMail = mailAPI.createMail(mailSender, config.getLetterBestDamage(), 0,
+                rewards.get(RewardType.BEST_DAMAGE).getItemStacks(true));
+
+        Mail normalMail = mailAPI.createMail(mailSender, config.getLetterNormal(), 0,
+                rewards.get(RewardType.NORMAL).getItemStacks(true));
+
+        // 데미지 기준 내림차순 정렬
+        validPlayers.sort(Comparator.comparingDouble(player -> -player.getJoin(fieldBoss.getId()).getDamage()));
+
+        // 최고 데미지 플레이어
+        PlayerFieldBoss bestDamagePlayer = validPlayers.getFirst();
+
+        // 막타 플레이어 찾기
+        PlayerFieldBoss lastHitPlayer = null;
+        if (killer != null) {
+            UUID killerId = killer.getUniqueId();
+            for (PlayerFieldBoss player : validPlayers) {
+                if (player.getId().equals(killerId)) {
+                    lastHitPlayer = player;
+                    break;
+                }
+            }
+        }
+
+        // 막타 플레이어 처리
+        if (lastHitPlayer != null) {
+            String lastNickname = lastHitPlayer.getNickname();
+            String bestNickname = bestDamagePlayer.getNickname();
+            double bestDamage = bestDamagePlayer.getJoin(fieldBoss.getId()).getDamage();
+
+
+            String broadcast = config.getBroadcastLastHit()
+                    .replace("<player>", killer.getName())
+                    .replace("<best_player>", bestNickname)
+                    .replace("<best_damage>", NumberUtil.applyComma(bestDamage));
+
+            TextReplacementConfig replace = TextReplacementConfig.builder()
+                    .match("<boss>")
+                    .replacement(spawnedBoss.teamDisplayName())
+                    .build();
+            Component message = Component.text(broadcast)
+                    .replaceText(replace);
+
+            Bukkit.broadcast(message);
+            VelocityClient.getInstance().getConnectClient().send(BroadcastComponentVelocityListener.class, JSONComponentSerializer.json().serialize(message));
+            mailAPI.sendMail(lastNickname, lastHitMail);
+        }
+
+        // 최고 데미지 플레이어 처리
+        mailAPI.sendMail(bestDamagePlayer.getNickname(), bestDamageMail);
+
+        // 모든 참여자에게 일반 보상 지급
+        for (PlayerFieldBoss player : validPlayers) {
+            mailAPI.sendMail(player.getNickname(), normalMail);
+            player.getJoin(fieldBoss.getId()).completeJoin();
+            playerRepository.save(player);
+        }
+        FieldBossDeathEvent event = new FieldBossDeathEvent(fieldBoss, lastHitPlayer, bestDamagePlayer, validPlayers);
+        Bukkit.getPluginManager().callEvent(event);
+        spawnedBoss = null;
+    }
+}

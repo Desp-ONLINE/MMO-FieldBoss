@@ -1,0 +1,94 @@
+{
+  "id": 1,
+  "mythicMob": "애쉬우드",
+  "despawnMinute": 20,
+  "initRewardHour": 2,
+  "itemStack": {
+    "slot": 10,
+    "type": "dark_oak_wood",
+    "displayName": "&c필드보스: &f애쉬우드",
+    "lore": [
+      "&7 > &f필드보스 <#4EA25A>애<#6E9852>쉬<#8F8D4B>우<#AF8343>드&f 입니다.",
+      "&7",
+      "&e&o  2시간에 한 번 처치하실 수 있습니다!"
+    ],
+    "amount": 1,
+    "customModelData": 0
+  },
+  "rewards": {
+    "NORMAL": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "필드보스_애쉬우드",
+          "amount": 1
+        },
+        "50.0": {
+          "type": "MISCELLANEOUS",
+          "id": "채광_래디언트스톤_레전더리",
+          "amount": 5
+        },
+        "100.1": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_엘븐하임열쇠",
+          "amount": 1
+        }
+      }
+    },
+    "BEST_DAMAGE": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 15
+        }
+      }
+    },
+    "LAST_HIT": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 15
+        }
+      }
+    }
+  },
+  "data": {
+    "30067": {
+      "port": 30067,
+      "location": "world:world, x:9900.605, y:12.0, z:9834.939, yaw:0.8, pitch:-0.3",
+      "spawnHours": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23
+      ]
+    },
+    "30068": {
+      "port": 30068,
+      "location": "world:world, x:9900.605, y:12.0, z:9834.939, yaw:0.8, pitch:-0.3",
+      "spawnHours": [
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20,
+        22
+      ]
+    }
+  }
+}

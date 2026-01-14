@@ -59,7 +59,7 @@ public class EntityListener implements Listener {
         }
 
         logic(event.getEntity(), fieldBoss -> {
-            fieldBoss.onKill(player);
+            fieldBoss.getDataThisServer().onKill(player);
         });
     }
 

@@ -6,6 +6,7 @@ import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
 import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -28,7 +29,7 @@ public class ForceSpawnArgument implements CommandArgument {
             return false;
         }
         try {
-            fieldBoss.spawn();
+            fieldBoss.getDataThisServer().spawn();
             sender.sendMessage("스폰 완료");
             return true;
         } catch (InvalidMobTypeException e) {

@@ -10,17 +10,12 @@ import com.binggre.mmofieldboss.listener.EntityListener;
 import com.binggre.mmofieldboss.listener.PlayerListener;
 import com.binggre.mmofieldboss.listener.velocity.FieldBossVelocityListener;
 import com.binggre.mmofieldboss.listener.velocity.ReloadVelocityListener;
-import com.binggre.mmofieldboss.objects.FieldBoss;
-import com.binggre.mmofieldboss.objects.FieldBossRedis;
-import com.binggre.mmofieldboss.repository.FieldBossRedisRepository;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
 import com.binggre.mmofieldboss.repository.PlayerRepository;
 import com.binggre.mmofieldboss.scheduler.SpawnScheduler;
 import com.binggre.velocitysocketclient.VelocityClient;
 import com.binggre.velocitysocketclient.socket.SocketClient;
 import lombok.Getter;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.swlab.etcetera.EtCetera;
 
 import java.util.HashMap;
@@ -34,7 +29,6 @@ public final class MMOFieldBoss extends BinggrePlugin {
 
     private final MetadataManager metadataManager = new KeepMetadataManager(this);
 
-    private FieldBossRedisRepository redisRepository;
     private FieldBossConfig fieldBossConfig;
     private GUIConfig guiConfig;
     private FieldBossRepository fieldBossRepository;
@@ -47,8 +41,6 @@ public final class MMOFieldBoss extends BinggrePlugin {
     public void onEnable() {
         plugin = this;
 
-        saveResource("example.json", true);
-
         guiConfig = new GUIConfig(DATABASE_NAME, "Config-GUI");
         guiConfig.init();
 
@@ -58,11 +50,8 @@ public final class MMOFieldBoss extends BinggrePlugin {
         playerRepository = new PlayerRepository(this, DATABASE_NAME, "Player", new HashMap<>());
         playerRepository.onEnable();
 
-        fieldBossRepository = new FieldBossRepository();
+        fieldBossRepository = new FieldBossRepository(this, DATABASE_NAME, "Boss", new HashMap<>());
         fieldBossRepository.onEnable();
-
-        redisRepository = new FieldBossRedisRepository(this, DATABASE_NAME, "NULL", "FieldBoss:", FieldBossRedis.class);
-        redisRepository.onEnable();
 
         executeCommand(this, new AdminCommand());
         registerEvents(this,
@@ -80,21 +69,10 @@ public final class MMOFieldBoss extends BinggrePlugin {
 
         placeHolder = new FieldBossPlaceHolder(this);
         placeHolder.register();
-
-        getServer().getScheduler().runTask(this, () -> {
-            fieldBossRepository.requestPutAllInRedis();
-            for (FieldBoss value : fieldBossRepository.values()) {
-                Player player = Bukkit.getPlayer("BingleBangleSoju");
-                if (player != null) {
-                    player.sendMessage(value.getId() + " : " + value.getMythicMob());
-                }
-            }
-        });
     }
 
     @Override
     public void onDisable() {
-        redisRepository.onDisable();
         playerRepository.onDisable();
         placeHolder.unregister();
     }

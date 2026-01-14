@@ -1,0 +1,100 @@
+{
+  "id": 2,
+  "mythicMob": "화무사",
+  "despawnMinute": 20,
+  "initRewardHour": 3,
+  "itemStack": {
+    "slot": 12,
+    "type": "netherrack",
+    "displayName": "&c필드보스: &f화무사",
+    "lore": [
+      "&7 > &f필드보스 <#BE3A3A>화<#DF664C>무<#FF925E>사&f 입니다.",
+      "&7",
+      "&e&o  3시간에 한 번 처치하실 수 있습니다!"
+    ],
+    "amount": 1,
+    "customModelData": 0
+  },
+  "rewards": {
+    "NORMAL": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "필드보스_화무사",
+          "amount": 1
+        },
+        "50.0": {
+          "type": "MISCELLANEOUS",
+          "id": "채광_래디언트스톤_레전더리",
+          "amount": 10
+        },
+        "100.1": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_칼리마열쇠",
+          "amount": 1
+        }
+      }
+    },
+    "BEST_DAMAGE": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 20
+        }
+      }
+    },
+    "LAST_HIT": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 20
+        }
+      }
+    }
+  },
+  "data": {
+    "30067": {
+      "port": 30067,
+      "location": "world:world, x:9900.605, y:12.0, z:9834.939, yaw:0.8, pitch:-0.3",
+      "spawnHours": [
+        1,
+        4,
+        7,
+        10,
+        13,
+        16,
+        19,
+        22
+      ]
+    },
+    "30068": {
+      "port": 30068,
+      "location": "world:world, x:9598.605, y:22.0, z:9817.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        2,
+        5,
+        8,
+        11,
+        14,
+        17,
+        20,
+        23
+      ]
+    },
+    "30069": {
+      "port": 30069,
+      "location": "world:world, x:9598.605, y:22.0, z:9817.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21
+      ]
+    }
+  }
+}

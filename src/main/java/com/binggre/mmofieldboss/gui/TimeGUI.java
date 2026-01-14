@@ -4,19 +4,14 @@ import com.binggre.binggreapi.functions.HolderListener;
 import com.binggre.binggreapi.functions.PageInventory;
 import com.binggre.binggreapi.objects.items.CustomItemStack;
 import com.binggre.binggreapi.utils.ItemManager;
-import com.binggre.binggreapi.utils.file.FileManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.GUIConfig;
-import com.binggre.mmofieldboss.listener.velocity.FieldBossVelocityListener;
 import com.binggre.mmofieldboss.objects.FieldBoss;
-import com.binggre.mmofieldboss.objects.FieldBossRedis;
+import com.binggre.mmofieldboss.objects.FieldBossData;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
 import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
-import com.binggre.mmofieldboss.repository.FieldBossRedisRepository;
+import com.binggre.mmofieldboss.repository.FieldBossRepository;
 import com.binggre.mmoplayerdata.MMOPlayerDataPlugin;
-import com.binggre.mmoplayerdata.config.Config;
-import com.binggre.velocitysocketclient.VelocityClient;
-import com.binggre.velocitysocketclient.socket.SocketResponse;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -30,16 +25,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
-    private final FieldBossRedisRepository redisRepository = MMOFieldBoss.getPlugin().getRedisRepository();
+    private final FieldBossRepository repository = MMOFieldBoss.getPlugin().getFieldBossRepository();
 
     public static void open(Player player) {
         TimeGUI timeGUI = new TimeGUI();
@@ -83,92 +73,69 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             return;
         }
 
-        Map<Integer, List<FieldBossRedis>> groupedByBossId = redisRepository.values().stream()
-                .filter(redis -> !redis.isJsonUseOnly())
-                .filter(redis -> fieldBossIds.contains(redis.getFieldBossId()))
-                .filter(redis -> redis.getPort() != 30066)
-                .sorted(Comparator.comparing(FieldBossRedis::getPort))
-                // LinkedHashMap을 사용하여 포트 정렬 순서 유지
-                .collect(Collectors.groupingBy(FieldBossRedis::getFieldBossId, LinkedHashMap::new, Collectors.toList()));
+        // 1. 해당 페이지의 보스 리스트 가져오기
+        List<FieldBoss> list = fieldBossIds.stream()
+                .map(repository::get)
+                .filter(Objects::nonNull)
+                .toList();
 
-        groupedByBossId.forEach((bossId, redisList) -> {
-            CustomItemStack customItemStack = redisList.stream()
-                    .map(FieldBossRedis::getCustomItemStack)
-                    .findFirst()
-                    .orElse(null);
-
-            if (customItemStack == null) {
-                return;
-            }
-
-            FieldBossRedis closestRedis = redisList.stream()
-                    .min(Comparator.comparingLong(redis -> {
-                        LocalDateTime now = LocalDateTime.now();
-                        List<Integer> spawnHours = redis.getSpawnHours();
-                        if (spawnHours == null || spawnHours.isEmpty()) return Long.MAX_VALUE;
-
-                        LocalDateTime nextSpawn = spawnHours.stream()
-                                .map(hour -> {
-                                    LocalDateTime candidate = now.withHour(hour)
-                                            .withMinute(0)
-                                            .withSecond(0)
-                                            .withNano(0);
-                                    if (!candidate.isAfter(now)) {
-                                        candidate = candidate.plusDays(1);
-                                    }
-                                    return candidate;
-                                })
-                                .min(LocalDateTime::compareTo)
-                                .orElse(now.plusYears(1));
-
-                        // 항상 양수임을 보장하기 위해 toMillis() 사용 전 확인
-                        return Duration.between(now, nextSpawn).toMillis();
-                    })).orElse(null);
-
-            String timeString = getTimeString(closestRedis);
+        // 2. 보스 리스트를 순회하며 아이템 배치
+        for (FieldBoss fieldBoss : list) {
+            // getTimeString 메서드에서 모든 채널(port)의 spawnHours를 계산하여 반환함
+            String timeString = getTimeString(fieldBoss);
 
             List<String> lore = new ArrayList<>();
             lore.add(timeString);
             lore.add("");
-            lore.add("§7 - §f" + getMyTime(bossId));
+            lore.add("§7 - §f" + getMyTime(fieldBoss));
             lore.add("");
             lore.add("§e  &n&o클릭하여 남은 필드 보스 쿨타임을 화면 왼쪽에 띄울 수 있습니다!");
 
-            ItemStack itemStack = customItemStack.getItemStack();
+            CustomItemStack customItemStack = fieldBoss.getItemStack();
+            ItemStack itemStack = customItemStack.getItemStack().clone(); // 원본 보호를 위해 복제
+
+            // 기존에 사용하시던 ItemManager 방식을 그대로 유지
             ItemManager.setLore(itemStack, lore);
             ItemManager.setCustomModelData(itemStack, customItemStack.getCustomModelData());
+
             inventory.setItem(customItemStack.getSlot(), itemStack);
-        });
+        }
     }
 
-    private String getTimeString(FieldBossRedis fieldBossRedis) {
+    private String getTimeString(FieldBoss fieldBoss) {
         LocalDateTime now = LocalDateTime.now();
-        List<Integer> spawnHours = fieldBossRedis.getSpawnHours();
 
-        if (spawnHours == null || spawnHours.isEmpty()) {
-            return "스폰 시간이 설정되어 있지 않습니다.";
+        // 1. 모든 채널(FieldBossData) 중에서 가장 빠른 미래의 스폰 시간을 가진 데이터를 찾습니다.
+        // (시간, 데이터객체)를 함께 관리하기 위해 Optional을 활용합니다.
+        var nextSpawnEntry = fieldBoss.getData().values().stream()
+                .filter(data -> data.getSpawnHours() != null && !data.getSpawnHours().isEmpty())
+                .flatMap(data -> data.getSpawnHours().stream()
+                        .map(hour -> {
+                            LocalDateTime candidate = now.withHour(hour).withMinute(0).withSecond(0).withNano(0);
+                            if (!candidate.isAfter(now)) {
+                                candidate = candidate.plusDays(1);
+                            }
+                            // 추후 비교를 위해 데이터와 계산된 시간을 Pair(추상적)로 묶어 처리
+                            return new java.util.AbstractMap.SimpleEntry<>(candidate, data);
+                        })
+                )
+                .min(Comparator.comparing(java.util.AbstractMap.SimpleEntry::getKey));
+
+        if (nextSpawnEntry.isEmpty()) {
+            return "§7다음 출현 정보가 없습니다.";
         }
 
-        LocalDateTime nextSpawn = spawnHours.stream()
-                .map(hour -> {
-                    LocalDateTime candidate = now.withHour(hour)
-                            .withMinute(0)
-                            .withSecond(0)
-                            .withNano(0);
-                    if (!candidate.isAfter(now)) {
-                        candidate = candidate.plusDays(1);
-                    }
-                    return candidate;
-                })
-                .min(Comparator.comparingLong(candidate -> Duration.between(now, candidate).toMillis()))
-                .orElse(now);
+        // 2. 가장 가까운 시간과 해당 데이터 객체 추출
+        LocalDateTime nextSpawnTime = nextSpawnEntry.get().getKey();
+        FieldBossData closestData = nextSpawnEntry.get().getValue();
 
-        Duration duration = Duration.between(now, nextSpawn);
+        // 3. 시간 차이 계산
+        Duration duration = Duration.between(now, nextSpawnTime);
         long hours = duration.toHours();
         long minutes = duration.toMinutes() % 60;
 
-        Config playerDataConfig = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig();
-        String serverName = playerDataConfig.getServerName(fieldBossRedis.getPort());
+        // 4. 해당 데이터의 포트를 사용하여 서버 이름 가져오기
+        String serverName = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig().getServerName(closestData.getPort());
 
         if (hours == 0) {
             return String.format("§7다음 출현은 §f%d분 §7후에 §f%s §7에서 등장합니다.", minutes, serverName);
@@ -210,12 +177,9 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
         return page;
     }
 
-    private String getMyTime(int id) {
+    private String getMyTime(FieldBoss fieldBoss) {
         PlayerFieldBoss playerFieldBoss = MMOFieldBoss.getPlugin().getPlayerRepository().get(this.player.getUniqueId());
-        FieldBossRedis fieldBossRedis = redisRepository.get(id + "");
-        FieldBoss fieldBoss = fieldBossRedis.toFieldBoss();
-
-        PlayerJoinBoss join = playerFieldBoss.getJoin(id);
+        PlayerJoinBoss join = playerFieldBoss.getJoin(fieldBoss.getId());
         long cooldownHour = join.getCooldownHour(fieldBoss);
         int lastJoinHour = join.getLastJoinTime().getHour();
         if (cooldownHour == 0) {

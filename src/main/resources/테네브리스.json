@@ -1,0 +1,125 @@
+{
+  "id": 4,
+  "mythicMob": "테네브리스",
+  "despawnMinute": 20,
+  "initRewardHour": 4,
+  "itemStack": {
+    "slot": 16,
+    "type": "packed_ice",
+    "displayName": "&c필드보스: &f테네브리스",
+    "lore": [
+      "&7 > &f필드보스 <#C68CFF>테<#A36EDD>네<#804FBA>브<#5D3198>리<#5D3198>스 &f 입니다.",
+      "&7",
+      "&e&o  4시간에 한 번 처치하실 수 있습니다!"
+    ],
+    "amount": 1,
+    "customModelData": 0
+  },
+  "rewards": {
+    "NORMAL": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "필드보스_테네브리스",
+          "amount": 1
+        },
+        "30.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_어센틱스톤_신화",
+          "amount": 1
+        },
+        "100.1": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_아르크티카열쇠",
+          "amount": 1
+        },
+        "100.2": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_IDE기념주화",
+          "amount": 1
+        },
+        "100.3": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_아르크티카열쇠",
+          "amount": 1
+        }
+      }
+    },
+    "BEST_DAMAGE": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 30
+        },
+        "50.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_IDE기념주화",
+          "amount": 1
+        },
+        "50.1": {
+          "type": "MISCELLANEOUS",
+          "id": "채광_래디언트스톤_레전더리",
+          "amount": 10
+        }
+      }
+    },
+    "LAST_HIT": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 30
+        },
+        "50.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_IDE기념주화",
+          "amount": 1
+        },
+        "50.1": {
+          "type": "MISCELLANEOUS",
+          "id": "채광_래디언트스톤_레전더리",
+          "amount": 10
+        }
+      }
+    }
+  },
+  "data": {
+    "30067": {
+      "port": 30067,
+      "location": "world:world, x:5082.605, y:12.0, z:34316.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        1,
+        5,
+        9,
+        13,
+        17,
+        21
+      ]
+    },
+    "30068": {
+      "port": 30068,
+      "location": "world:world, x:5082.605, y:12.0, z:34316.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        2,
+        6,
+        10,
+        14,
+        18,
+        22
+      ]
+    },
+    "30069": {
+      "port": 30069,
+      "location": "world:world, x:5082.605, y:12.0, z:34316.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        3,
+        7,
+        11,
+        15,
+        19,
+        23
+      ]
+    }
+  }
+}

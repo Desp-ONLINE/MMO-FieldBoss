@@ -4,74 +4,44 @@ import com.binggre.binggreapi.functions.Callback;
 import com.binggre.binggreapi.utils.file.FileManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBoss;
-import com.binggre.mmofieldboss.objects.FieldBossRedis;
-import com.mongodb.client.FindIterable;
+import com.binggre.mongolibraryplugin.base.MongoCachedRepository;
+import com.binggre.mongolibraryplugin.base.MongoData;
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FieldBossRepository {
+public class FieldBossRepository extends MongoCachedRepository<Integer, FieldBoss> {
 
     public static final String DIRECTORY = MMOFieldBoss.getPlugin().getDataFolder().getPath();
 
-    private final Map<Integer, FieldBoss> cache = new HashMap<>();
+    public FieldBossRepository(Plugin plugin, String database, String collection, Map<Integer, FieldBoss> cache) {
+        super(plugin, database, collection, cache);
+    }
+
+    @Override
+    public Document toDocument(FieldBoss fieldBoss) {
+        return Document.parse(FileManager.toJson(fieldBoss));
+    }
+
+    @Override
+    public FieldBoss toEntity(Document document) {
+        return FileManager.toObject(document.toJson(), FieldBoss.class);
+    }
 
     public void onEnable() {
-        if (!cache.isEmpty()) {
-            for (FieldBoss value : cache.values()) {
-                value.cancelTask();
-            }
-        }
-        cache.clear();
-        readFiles(file -> {
-            FieldBoss read = FileManager.read(FieldBoss.class, file);
-            read.init();
-
-            cache.put(read.getId(), read);
-        });
-    }
-
-    public void save(FieldBoss fieldBoss) {
-        readFiles(file -> {
-            FieldBoss read = FileManager.read(FieldBoss.class, file);
-            if (read.getId() == fieldBoss.getId() && fieldBoss.getOwnerPort() == Bukkit.getPort()) {
-                FileManager.write(file, fieldBoss);
-            }
-        });
-    }
-
-    public void requestPutAllInRedis() {
-        FieldBossRedisRepository redisRepository = MMOFieldBoss.getPlugin().getRedisRepository();
-        for (FieldBossRedis value : redisRepository.values()) {
-            if (value.isJsonUseOnly()) {
-                FieldBoss fieldBoss = value.toFieldBoss();
-                fieldBoss.init();
-                putIn(fieldBoss);
-            }
+        List<FieldBoss> fieldBossList = findAll();
+        for (FieldBoss fieldBoss : fieldBossList) {
+            fieldBoss.init();
+            putIn(fieldBoss);
         }
     }
 
-    public void putIn(FieldBoss fieldBoss) {
-        cache.put(fieldBoss.getId(), fieldBoss);
-    }
-
-    public FieldBoss get(int id) {
-        return cache.get(id);
-    }
-
-    public List<FieldBoss> values() {
-        return cache.values().stream().toList();
-    }
-
-    private void readFiles(Callback<File> callback) {
-        for (File file : FileManager.readFiles(DIRECTORY)) {
-            callback.accept(file);
-        }
-    }
 
     public Location deserializeLocation(FieldBoss fieldboss, String serializedLocation) {
         String[] split = serializedLocation

@@ -1,0 +1,122 @@
+{
+  "id": 5,
+  "mythicMob": "화무사",
+  "despawnMinute": 20,
+  "initRewardHour": 5,
+  "itemStack": {
+    "slot": 28,
+    "type": "cobbled_deepslate",
+    "displayName": "&c필드보스: &f트와일라잇",
+    "lore": [
+      "&7 > &f필드보스 <#76819B>트<#616A91>와<#4B5286>일<#616A91>라<#76819B>잇 &f 입니다.",
+      "&7",
+      "&e&o  5시간에 한 번 처치하실 수 있습니다!"
+    ],
+    "amount": 1,
+    "customModelData": 0
+  },
+  "rewards": {
+    "NORMAL": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "필드보스_트와일라잇",
+          "amount": 1
+        },
+        "3.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_어센드카탈리스트",
+          "amount": 1
+        },
+        "100.1": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_IDE기념주화",
+          "amount": 2
+        },
+        "100.4": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_엡실론열쇠",
+          "amount": 1
+        }
+      }
+    },
+    "BEST_DAMAGE": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 30
+        },
+        "2.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_어센드카탈리스트",
+          "amount": 1
+        },
+        "100.1": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_IDE기념주화",
+          "amount": 1
+        }
+      }
+    },
+    "LAST_HIT": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 30
+        },
+        "2.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_어센드카탈리스트",
+          "amount": 1
+        },
+        "100.1": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_IDE기념주화",
+          "amount": 1
+        }
+      }
+    }
+  },
+  "data": {
+    "30067": {
+      "port": 30067,
+      "location": "world:world, x:7566.605, y:26.0, z:29608.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        1,
+        4,
+        7,
+        10,
+        13,
+        16,
+        19,
+        22
+      ]
+    },
+    "30068": {
+      "port": 30068,
+      "location": "world:world, x:7566.605, y:26.0, z:29608.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        1,
+        5,
+        9,
+        13,
+        17,
+        21
+      ]
+    },
+    "30069": {
+      "port": 30069,
+      "location": "world:world, x:7566.605, y:26.0, z:29608.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        3,
+        7,
+        11,
+        15,
+        19,
+        23
+      ]
+    }
+  }
+}

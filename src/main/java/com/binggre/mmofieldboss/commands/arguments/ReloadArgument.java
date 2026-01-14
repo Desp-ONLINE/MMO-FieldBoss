@@ -17,7 +17,6 @@ public class ReloadArgument implements CommandArgument {
             plugin.getGuiConfig().init();
             plugin.getFieldBossConfig().init();
             plugin.getFieldBossRepository().onEnable();
-            plugin.getRedisRepository().onEnable();
             sender.sendMessage("MMO-FieldBoss 리로드 완료");
         });
     }

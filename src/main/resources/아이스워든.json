@@ -1,0 +1,97 @@
+{
+  "id": 3,
+  "mythicMob": "아이스워든",
+  "despawnMinute": 20,
+  "initRewardHour": 4,
+  "itemStack": {
+    "slot": 14,
+    "type": "packed_ice",
+    "displayName": "&c필드보스: &f아이스 워든",
+    "lore": [
+      "&7 > &f필드보스 <#ADFFE1>아<#ADFDE7>이<#ADFAEC>스 <#ADF5F7>워<#ADF3FD>든&f 입니다.",
+      "&7",
+      "&e&o  4시간에 한 번 처치하실 수 있습니다!"
+    ],
+    "amount": 1,
+    "customModelData": 0
+  },
+  "rewards": {
+    "NORMAL": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "필드보스_아이스워든",
+          "amount": 1
+        },
+        "15.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_어센틱스톤_신화",
+          "amount": 1
+        },
+        "100.1": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_인페리움열쇠",
+          "amount": 1
+        }
+      }
+    },
+    "BEST_DAMAGE": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 30
+        }
+      }
+    },
+    "LAST_HIT": {
+      "chanceItems": {
+        "100.0": {
+          "type": "MISCELLANEOUS",
+          "id": "기타_세계의핵",
+          "amount": 30
+        }
+      }
+    }
+  },
+  "data": {
+    "30067": {
+      "port": 30067,
+      "location": "world:world, x:3089.605, y:110.0, z:13216.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        1,
+        4,
+        7,
+        10,
+        13,
+        16,
+        19,
+        22
+      ]
+    },
+    "30068": {
+      "port": 30069,
+      "location": "world:world, x:3089.605, y:110.0, z:13216.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        2,
+        6,
+        10,
+        14,
+        18,
+        22
+      ]
+    },
+    "30069": {
+      "port": 30069,
+      "location": "world:world, x:3089.605, y:110.0, z:13216.939, yaw:-91.6, pitch:0.2",
+      "spawnHours": [
+        3,
+        7,
+        11,
+        15,
+        19,
+        23
+      ]
+    }
+  }
+}

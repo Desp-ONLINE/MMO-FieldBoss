@@ -2,6 +2,7 @@ package com.binggre.mmofieldboss.api;
 
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +17,7 @@ public class FieldBossDespawnEvent extends FieldBossEvent {
 
     public FieldBossDespawnEvent(FieldBoss fieldBoss) {
         this.fieldBoss = fieldBoss;
-        this.bossEntity = fieldBoss.getSpawnedBoss();
+        this.bossEntity = fieldBoss.getDataThisServer().getSpawnedBoss();
     }
 
     @Override
