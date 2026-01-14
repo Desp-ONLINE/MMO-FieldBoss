@@ -17,8 +17,8 @@ public class SpawnScheduler extends BukkitRunnable {
 
     @Override
     public void run() {
-//        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime now = LocalDateTime.of(2023, 1, 15, 21, 0, 0);
+        LocalDateTime now = LocalDateTime.now();
+//        LocalDateTime now = LocalDateTime.of(2023, 1, 15, 21, 0, 0);
         int hour = now.getHour();
 
         for (FieldBoss fieldBoss : repository.values()) {
