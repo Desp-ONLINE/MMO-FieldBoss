@@ -6,6 +6,7 @@ import com.binggre.binggreapi.objects.items.CustomItemStack;
 import com.binggre.binggreapi.utils.ItemManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.config.GUIConfig;
+import com.binggre.mmofieldboss.objects.BossSession;
 import com.binggre.mmofieldboss.objects.FieldBoss;
 import com.binggre.mmofieldboss.objects.FieldBossData;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
@@ -22,6 +23,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.swlab.etcetera.Util.CommandUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -86,10 +88,19 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
             List<String> lore = new ArrayList<>();
             lore.add(timeString);
+            String sessionLine = getSessionStatus(fieldBoss);
+            if (sessionLine != null) {
+                lore.add(sessionLine);
+            }
             lore.add("");
             lore.add("§7 - §f" + getMyTime(fieldBoss));
+            String lvLine = formatLevelRange(fieldBoss);
+            if (lvLine != null) {
+                lore.add(lvLine);
+            }
             lore.add("");
-            lore.add("§e  &n&o클릭하여 남은 필드 보스 쿨타임을 화면 왼쪽에 띄울 수 있습니다!");
+            lore.add("§a  &n&o좌클릭으로 입장할 수 있습니다!");
+            lore.add("§b  &n&oShift + 클릭하여 보상 정보를 확인할 수 있습니다!");
 
             CustomItemStack customItemStack = fieldBoss.getItemStack();
             ItemStack itemStack = customItemStack.getItemStack().clone(); // 원본 보호를 위해 복제
@@ -190,57 +201,139 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
     }
 
 
+    private boolean checkLevel(FieldBoss boss) {
+        if (player.isOp()) return true;
+        int min = boss.getMinLevel();
+        int max = boss.getMaxLevel();
+        if (min <= 0 && max <= 0) return true;
+        int playerMax = com.binggre.mmofieldboss.utils.LevelUtil.getMaxLevel(player);
+        if (playerMax < 0) playerMax = 0;
+        if (min > 0 && playerMax < min) {
+            player.sendMessage("§c레벨이 부족합니다. " + formatRange(min, max) + " §c(보유 최대 §f" + playerMax + "§c)");
+            return false;
+        }
+        if (max > 0 && playerMax > max) {
+            player.sendMessage("§c레벨이 너무 높습니다. " + formatRange(min, max) + " §c(보유 최대 §f" + playerMax + "§c)");
+            return false;
+        }
+        return true;
+    }
+
+    private String formatLevelRange(FieldBoss boss) {
+        int min = boss.getMinLevel();
+        int max = boss.getMaxLevel();
+        if (min <= 0 && max <= 0) return null;
+        return "§7 - §f레벨: §e" + formatRangePlain(min, max);
+    }
+
+    private static String formatRange(int min, int max) {
+        return "§7(§f" + formatRangePlain(min, max) + "§7)";
+    }
+
+    private static String formatRangePlain(int min, int max) {
+        if (min > 0 && max > 0) return min + " ~ " + max;
+        if (min > 0) return min + " 이상";
+        if (max > 0) return max + " 이하";
+        return "제한 없음";
+    }
+
+    private String getSessionStatus(FieldBoss fieldBoss) {
+        FieldBossData data = fieldBoss.getDataThisServer();
+        if (data == null || data.getSession() == null) {
+            return null;
+        }
+        BossSession session = data.getSession();
+        int n = session.getParticipants().size();
+        if (session.isOpening()) {
+            return String.format("§a - §f현재 입장 중 §7(§f%d§7명)", n);
+        }
+        if (session.isInBattle()) {
+            return String.format("§c - §f전투 진행 중 §7(§f%d§7명)", n);
+        }
+        return null;
+    }
+
+    private FieldBoss findBossBySlot(int slot) {
+        List<Integer> ids = config().getPageIds().get(page);
+        if (ids == null) {
+            return null;
+        }
+        for (int id : ids) {
+            FieldBoss b = repository.get(id);
+            if (b != null && b.getItemStack() != null && b.getItemStack().getSlot() == slot) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    private void tryEnter(FieldBoss boss) {
+        if (!checkLevel(boss)) {
+            return;
+        }
+        FieldBossData data = boss.getDataThisServer();
+        if (data != null && data.getSession() != null) {
+            BossSession session = data.getSession();
+            if (session.isInBattle()) {
+                player.sendMessage("§c필드보스가 이미 등장하여 입장할 수 없습니다.");
+                return;
+            }
+            if (session.isOpening()) {
+                PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().getOrCreate(player);
+                PlayerJoinBoss join = pf.getJoin(boss.getId());
+                if (join.isCooldown(boss)) {
+                    player.sendMessage("§c " + join.getCooldownHour(boss) + "시간 후에 처치할 수 있습니다!");
+                    return;
+                }
+                if (session.enter(player)) {
+                    player.sendMessage("§a필드보스 토벌에 입장했습니다.");
+                    player.closeInventory();
+                }
+                return;
+            }
+        }
+
+        String openServer = com.binggre.mmofieldboss.repository.BossSessionRedis.getOpenServer(boss.getId());
+        if (openServer == null || openServer.isEmpty()) {
+            player.sendMessage("§c아직 입장 시간이 아닙니다.");
+            return;
+        }
+        if (openServer.equals(com.binggre.mmofieldboss.repository.BossSessionRedis.currentChannelName())) {
+            player.sendMessage("§c아직 입장 시간이 아닙니다.");
+            return;
+        }
+
+        PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().getOrCreate(player);
+        PlayerJoinBoss join = pf.getJoin(boss.getId());
+        if (join.isCooldown(boss)) {
+            player.sendMessage("§c " + join.getCooldownHour(boss) + "시간 후에 처치할 수 있습니다!");
+            return;
+        }
+        CommandUtil.runCommandAsOP(player, "채널 워프 " + openServer + " fieldboss 입장 " + boss.getId());
+        player.closeInventory();
+    }
+
     @Override
     public void onClick(InventoryClickEvent event) {
         if (event.getInventory().getHolder() != this) {
             return;
         }
         event.setCancelled(true);
-        if (event.getSlot() == 10) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add " + player.getName() + " fieldboss_hud_1");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_2");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_3");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_4");
-            player.sendMessage("§a 성공적으로 §f§n애쉬우드§a 보스 쿨타임을 표시했습니다.");
-            player.closeInventory();
-        }
-        if (event.getSlot() == 12) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_1");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add " + player.getName() + " fieldboss_hud_2");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_3");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_5");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_4");
-            player.sendMessage("§a 성공적으로 §f§n화무사§a 보스 쿨타임을 표시했습니다.");
-            player.closeInventory();
-        }
-        if (event.getSlot() == 14) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_1");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_2");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add " + player.getName() + " fieldboss_hud_3");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_4");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_5");
-            player.sendMessage("§a 성공적으로 §f§n아이스 워든§a 보스 쿨타임을 표시했습니다.");
-            player.closeInventory();
-        }
-        if (event.getSlot() == 16) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_1");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_2");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_3");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_5");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add " + player.getName() + " fieldboss_hud_4");
-            player.sendMessage("§a 성공적으로 §f§n테네브리스§a 보스 쿨타임을 표시했습니다.");
-            player.closeInventory();
-        }
-        if (event.getSlot() == 28) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_1");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_2");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_3");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud remove " + player.getName() + " fieldboss_hud_4");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hud hud add " + player.getName() + " fieldboss_hud_5");
-            player.sendMessage("§a 성공적으로 §f§n트와일라잇§a 보스 쿨타임을 표시했습니다.");
-            player.closeInventory();
+
+        if (event.isShiftClick()) {
+            FieldBoss fieldBoss = findBossBySlot(event.getSlot());
+            if (fieldBoss != null) {
+                RewardInfoGUI.open(player, fieldBoss);
+            }
+            return;
         }
 
+        if (event.isLeftClick()) {
+            FieldBoss fieldBoss = findBossBySlot(event.getSlot());
+            if (fieldBoss != null) {
+                tryEnter(fieldBoss);
+            }
+        }
     }
 
     @Override

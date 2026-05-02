@@ -7,7 +7,6 @@ import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.api.FieldBossDeathEvent;
 import com.binggre.mmofieldboss.api.FieldBossDespawnEvent;
 import com.binggre.mmofieldboss.api.FieldBossSpawnEvent;
-import com.binggre.mmofieldboss.config.FieldBossConfig;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
 import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
@@ -47,6 +46,8 @@ public class FieldBoss implements MongoData<Integer> {
     private String mythicMob;
     private int despawnMinute;
     private int initRewardHour;
+    private int minLevel;
+    private int maxLevel;
     private CustomItemStack itemStack;
     private Map<RewardType, FieldBossReward> rewards;
 

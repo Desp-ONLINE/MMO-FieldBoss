@@ -4,7 +4,9 @@ import com.binggre.binggreapi.functions.Callback;
 import com.binggre.binggreapi.utils.metadata.MetadataManager;
 import com.binggre.mmofieldboss.MMOFieldBoss;
 import com.binggre.mmofieldboss.objects.BossKey;
+import com.binggre.mmofieldboss.objects.BossSession;
 import com.binggre.mmofieldboss.objects.FieldBoss;
+import com.binggre.mmofieldboss.objects.FieldBossData;
 import com.binggre.mmofieldboss.objects.player.PlayerFieldBoss;
 import com.binggre.mmofieldboss.objects.player.PlayerJoinBoss;
 import com.binggre.mmofieldboss.repository.FieldBossRepository;
@@ -33,20 +35,15 @@ public class EntityListener implements Listener {
         Entity mythicMob = event.getEntity();
 
         logic(mythicMob, fieldBoss -> {
-            int fieldBossId = fieldBoss.getId();
-
-            PlayerFieldBoss playerFieldBoss = playerRepository.getOrCreate(player);
-            PlayerJoinBoss playerJoinBoss = playerFieldBoss.getJoin(fieldBossId);
-
-            if (playerJoinBoss.isCooldown(fieldBoss)) {
-                event.setCancelled(true);
-                String cooldownMessage = MMOFieldBoss.getPlugin().getFieldBossConfig().getCooldownMessage()
-                        .replace("<hour>", playerJoinBoss.getCooldownHour(fieldBoss) + "");
-                player.sendMessage(cooldownMessage);
-                return;
+            FieldBossData data = fieldBoss.getDataThisServer();
+            BossSession session = data != null ? data.getSession() : null;
+            if (session != null && !session.isParticipant(player.getUniqueId())) {
+                session.getParticipants().add(player.getUniqueId());
             }
 
-            playerJoinBoss.setNowJoinedId(fieldBossId);
+            PlayerFieldBoss playerFieldBoss = playerRepository.getOrCreate(player);
+            PlayerJoinBoss playerJoinBoss = playerFieldBoss.getJoin(fieldBoss.getId());
+            playerJoinBoss.setNowJoinedId(fieldBoss.getId());
             playerJoinBoss.addDamage(event.getDamage());
         });
     }

@@ -32,7 +32,10 @@ public class AdminCommand extends BetterCommand {
                 new RewardArgument(),
                 new ReloadArgument(),
                 new TimeGUIOpenArgument(),
-                new CooldownResetArgument()
+                new CooldownResetArgument(),
+                new OpenSessionArgument(),
+                new CloseSessionArgument(),
+                new EnterArgument()
         );
     }
 
@@ -52,7 +55,7 @@ public class AdminCommand extends BetterCommand {
                     return Arrays.stream(RewardType.values()).map(Enum::toString).toList();
                 }
             }
-            case "강제스폰" -> {
+            case "강제스폰", "입장오픈", "입장마감", "입장" -> {
                 return MMOFieldBoss.getPlugin().getFieldBossRepository()
                         .values()
                         .stream()
