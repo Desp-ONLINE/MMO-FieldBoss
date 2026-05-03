@@ -142,7 +142,7 @@ public class FieldBossData {
         String msg = "\n " + HEX_RED + "⚔ " + HEX_GOLD + serverName + HEX_WHITE + " 에서 "
                 + getBossDisplayNameString() + HEX_WHITE + " 필드 보스가 등장했습니다.\n";
         Bukkit.broadcastMessage(msg);
-        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg.replace("\n", ""));
     }
 
     private void broadcastOpen() {
@@ -152,7 +152,7 @@ public class FieldBossData {
                 + getBossDisplayNameString() + HEX_WHITE + " 필드 보스 입장이 시작되었습니다. "
                 + HEX_GRAY + "(" + prepareMinute + "분 후 등장)\n";
         Bukkit.broadcastMessage(msg);
-        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg.replace("\n", ""));
     }
 
     private String getBossDisplayNameString() {
@@ -194,7 +194,7 @@ public class FieldBossData {
                 + getBossDisplayNameString() + HEX_WHITE + " 필드 보스가 "
                 + HEX_RED + "1분 후" + HEX_WHITE + " 등장합니다!\n";
         Bukkit.broadcastMessage(msg);
-        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg.replace("\n", ""));
     }
 
     private void broadcastKillAnnouncement() {
@@ -202,7 +202,7 @@ public class FieldBossData {
         String particle = josa(bossName);
         String msg = "\n " + HEX_RED + "⚔ " + bossName + HEX_WHITE + particle + " 처치되었습니다!\n";
         Bukkit.broadcastMessage(msg);
-        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg.replace("\n", ""));
     }
 
     private void broadcastFailAnnouncement() {
@@ -211,7 +211,7 @@ public class FieldBossData {
         String msg = "\n " + HEX_GRAY + "⚠ " + HEX_GOLD + serverName + HEX_WHITE + " 의 "
                 + bossName + HEX_WHITE + " 필드 보스 토벌에 " + HEX_RED + "실패" + HEX_WHITE + "하였습니다.\n";
         Bukkit.broadcastMessage(msg);
-        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg.replace("\n", ""));
     }
 
     private String buildKillDetailsMessage(PlayerFieldBoss lastHit, PlayerFieldBoss best,
