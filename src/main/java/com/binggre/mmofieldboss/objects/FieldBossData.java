@@ -205,6 +205,15 @@ public class FieldBossData {
         VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg);
     }
 
+    private void broadcastFailAnnouncement() {
+        String serverName = MMOPlayerDataPlugin.getInstance().getPlayerDataConfig().getServerName(Bukkit.getPort());
+        String bossName = getBossDisplayNameString();
+        String msg = "\n " + HEX_GRAY + "⚠ " + HEX_GOLD + serverName + HEX_WHITE + " 의 "
+                + bossName + HEX_WHITE + " 필드 보스 토벌에 " + HEX_RED + "실패" + HEX_WHITE + "하였습니다.\n";
+        Bukkit.broadcastMessage(msg);
+        VelocityClient.getInstance().getConnectClient().send(BroadcastStringVelocityListener.class, msg);
+    }
+
     private String buildKillDetailsMessage(PlayerFieldBoss lastHit, PlayerFieldBoss best,
                                            List<ItemStack> lastHitItems, List<ItemStack> bestDamageItems, List<ItemStack> normalItems) {
         String bar = HEX_GOLD + "━━━━━━━━━━━━━━━━━━━━━━━━━━";
@@ -416,8 +425,28 @@ public class FieldBossData {
         if (spawnedBoss != null) {
             spawnedBoss.remove();
         }
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mm m k " + fieldBoss.getMythicMob());
+
+        // 잔존 엔티티 정리 (메타데이터의 보스 ID로 동일 보스의 모든 인스턴스 제거)
+        if (spawnLocation != null && spawnLocation.getWorld() != null) {
+            for (Entity entity : spawnLocation.getWorld().getEntities()) {
+                Object idObj = metadataManager.getEntity(entity, BossKey.ID);
+                if (idObj instanceof Integer id && id == fieldBoss.getId()) {
+                    entity.remove();
+                }
+            }
+        }
+
+        // mm m k <보스이름> 으로 한 번 더 보장 (월드 지정 시 콘솔 sender에서도 동작)
+        String mythicName = fieldBoss.getMythicMob();
+        String worldName = (spawnLocation != null && spawnLocation.getWorld() != null)
+                ? spawnLocation.getWorld().getName() : null;
+        String killCommand = worldName != null
+                ? "mm m k " + mythicName + " 99999 " + worldName
+                : "mm m k " + mythicName;
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), killCommand);
+
         spawnedBoss = null;
+        broadcastFailAnnouncement();
         if (session != null) {
             session.fail();
         }
@@ -480,6 +509,21 @@ public class FieldBossData {
             }
         }
 
+        // 보스 등장 시각 추출 (쿨타임 기준점)
+        LocalDateTime spawnTime = null;
+        if (spawnedBoss != null) {
+            Object spawnTimeObj = metadataManager.getEntity(spawnedBoss, BossKey.TIME);
+            if (spawnTimeObj instanceof String s) {
+                try {
+                    spawnTime = LocalDateTime.parse(s);
+                } catch (Exception ignored) {
+                }
+            }
+        }
+        if (spawnTime == null) {
+            spawnTime = LocalDateTime.now();
+        }
+
         // 전체 서버에 처치 알림 (간결)
         broadcastKillAnnouncement();
 
@@ -497,9 +541,10 @@ public class FieldBossData {
         }
         mailAPI.sendMail(bestDamagePlayer.getNickname(), bestDamageMail);
 
+        LocalDateTime cooldownAnchor = spawnTime;
         for (PlayerFieldBoss player : validPlayers) {
             mailAPI.sendMail(player.getNickname(), normalMail);
-            player.getJoin(fieldBoss.getId()).completeJoin();
+            player.getJoin(fieldBoss.getId()).completeJoin(cooldownAnchor);
             playerRepository.save(player);
         }
         FieldBossDeathEvent event = new FieldBossDeathEvent(fieldBoss, lastHitPlayer, bestDamagePlayer, validPlayers);

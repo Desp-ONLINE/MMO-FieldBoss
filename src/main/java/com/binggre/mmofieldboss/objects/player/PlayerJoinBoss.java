@@ -70,9 +70,9 @@ public class PlayerJoinBoss {
         lastJoinTime = getResetTime();
     }
 
-    public void completeJoin() {
+    public void completeJoin(LocalDateTime spawnTime) {
         reset();
-        lastJoinTime = LocalDateTime.now();
+        lastJoinTime = spawnTime != null ? spawnTime : LocalDateTime.now();
     }
 
     public void reset() {

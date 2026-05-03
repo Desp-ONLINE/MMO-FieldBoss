@@ -192,12 +192,15 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
         PlayerFieldBoss playerFieldBoss = MMOFieldBoss.getPlugin().getPlayerRepository().get(this.player.getUniqueId());
         PlayerJoinBoss join = playerFieldBoss.getJoin(fieldBoss.getId());
         long cooldownHour = join.getCooldownHour(fieldBoss);
-        int lastJoinHour = join.getLastJoinTime().getHour();
         if (cooldownHour == 0) {
-            return "§a처치에 관여할 수 있습니다.";
+            return "§a지금 등장하는 필드보스부터 처치할 수 있습니다.";
         }
-        return String.format("§c%d시에 처치에 관여했기 때문에, %d시부터 처치할 수 있습니다.",
-                lastJoinHour, lastJoinHour + fieldBoss.getInitRewardHour());
+        int lastSpawnHour = join.getLastJoinTime().getHour();
+        int availableHour = join.getLastJoinTime()
+                .plusHours(fieldBoss.getInitRewardHour())
+                .getHour();
+        return String.format("§c%d시 보스에 참여하여, §f%d시 §c부터 등장하는 필드보스를 처치할 수 있습니다.",
+                lastSpawnHour, availableHour);
     }
 
 
@@ -282,7 +285,10 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
                 PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().getOrCreate(player);
                 PlayerJoinBoss join = pf.getJoin(boss.getId());
                 if (join.isCooldown(boss)) {
-                    player.sendMessage("§c " + join.getCooldownHour(boss) + "시간 후에 처치할 수 있습니다!");
+                    int availableHour = join.getLastJoinTime()
+                            .plusHours(boss.getInitRewardHour())
+                            .getHour();
+                    player.sendMessage(String.format("§c%d시부터 등장하는 필드보스를 처치할 수 있습니다!", availableHour));
                     return;
                 }
                 if (session.enter(player)) {
