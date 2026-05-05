@@ -284,7 +284,8 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             if (session.isOpening()) {
                 PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().getOrCreate(player);
                 PlayerJoinBoss join = pf.getJoin(boss.getId());
-                if (join.isCooldown(boss)) {
+                LocalDateTime spawnRef = upcomingSpawnTime();
+                if (join.isCooldown(boss, spawnRef)) {
                     int availableHour = join.getLastJoinTime()
                             .plusHours(boss.getInitRewardHour())
                             .getHour();
@@ -311,12 +312,17 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
         PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().getOrCreate(player);
         PlayerJoinBoss join = pf.getJoin(boss.getId());
-        if (join.isCooldown(boss)) {
-            player.sendMessage("§c " + join.getCooldownHour(boss) + "시간 후에 처치할 수 있습니다!");
+        LocalDateTime spawnRef = upcomingSpawnTime();
+        if (join.isCooldown(boss, spawnRef)) {
+            player.sendMessage("§c " + join.getCooldownHour(boss, spawnRef) + "시간 후에 처치할 수 있습니다!");
             return;
         }
         CommandUtil.runCommandAsOP(player, "채널 워프 " + openServer + " fieldboss 입장 " + boss.getId());
         player.closeInventory();
+    }
+
+    private static LocalDateTime upcomingSpawnTime() {
+        return LocalDateTime.now().withMinute(0).withSecond(0).withNano(0).plusHours(1);
     }
 
     @Override

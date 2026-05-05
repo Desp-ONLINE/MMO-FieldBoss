@@ -34,21 +34,29 @@ public class PlayerJoinBoss {
     }
 
     public long getCooldownHour(FieldBoss fieldBoss) {
-        LocalDateTime now = normalizeTime(LocalDateTime.now());
+        return getCooldownHour(fieldBoss, LocalDateTime.now());
+    }
+
+    public long getCooldownHour(FieldBoss fieldBoss, LocalDateTime referenceTime) {
+        LocalDateTime ref = normalizeTime(referenceTime);
         LocalDateTime normalizedLastJoinTime = normalizeTime(lastJoinTime);
 
         int initRewardHour = fieldBoss.getInitRewardHour();
-        long elapsedHours = Duration.between(normalizedLastJoinTime, now).toHours();
+        long elapsedHours = Duration.between(normalizedLastJoinTime, ref).toHours();
 
         return Math.max(0, initRewardHour - elapsedHours);
     }
 
     public boolean isCooldown(FieldBoss fieldBoss) {
-        LocalDateTime now = normalizeTime(LocalDateTime.now());
+        return isCooldown(fieldBoss, LocalDateTime.now());
+    }
+
+    public boolean isCooldown(FieldBoss fieldBoss, LocalDateTime referenceTime) {
+        LocalDateTime ref = normalizeTime(referenceTime);
         LocalDateTime normalizedLastJoinTime = normalizeTime(lastJoinTime);
 
         int initRewardHour = fieldBoss.getInitRewardHour();
-        return Duration.between(normalizedLastJoinTime, now).toHours() < initRewardHour;
+        return Duration.between(normalizedLastJoinTime, ref).toHours() < initRewardHour;
     }
 
 

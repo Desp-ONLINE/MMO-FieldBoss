@@ -177,7 +177,22 @@ public class FieldBossData {
             return;
         }
         session.open();
+        clearArenaEntities();
         broadcastOpen();
+    }
+
+    public void clearArenaEntities() {
+        if (pos1 == null || pos2 == null || pos1.getWorld() == null) {
+            return;
+        }
+        for (Entity entity : pos1.getWorld().getEntities()) {
+            if (entity instanceof Player) {
+                continue;
+            }
+            if (isInArena(entity.getLocation())) {
+                entity.remove();
+            }
+        }
     }
 
     public void warnSoon() {
@@ -561,5 +576,7 @@ public class FieldBossData {
                 online.performCommand("spawn");
             }
         }
+
+        clearArenaEntities();
     }
 }
