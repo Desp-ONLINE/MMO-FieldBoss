@@ -29,7 +29,7 @@ public class CooldownResetArgument implements CommandArgument {
         PlayerRepository repository = MMOFieldBoss.getPlugin().getPlayerRepository();
         PlayerFieldBoss playerFieldBoss = repository.get(target.getUniqueId());
         PlayerJoinBoss join = playerFieldBoss.getJoin(id);
-        join.cancelCompleteJoin();
+        join.reset();
         join.resetDailyCount();
 
         repository.save(playerFieldBoss);

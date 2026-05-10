@@ -2,7 +2,6 @@
   "id": 1,
   "mythicMob": "애쉬우드",
   "despawnMinute": 10,
-  "initRewardHour": 2,
   "itemStack": {
     "slot": 10,
     "type": "dark_oak_wood",

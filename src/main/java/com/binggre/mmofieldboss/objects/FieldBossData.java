@@ -524,21 +524,6 @@ public class FieldBossData {
             }
         }
 
-        // 보스 등장 시각 추출 (쿨타임 기준점)
-        LocalDateTime spawnTime = null;
-        if (spawnedBoss != null) {
-            Object spawnTimeObj = metadataManager.getEntity(spawnedBoss, BossKey.TIME);
-            if (spawnTimeObj instanceof String s) {
-                try {
-                    spawnTime = LocalDateTime.parse(s);
-                } catch (Exception ignored) {
-                }
-            }
-        }
-        if (spawnTime == null) {
-            spawnTime = LocalDateTime.now();
-        }
-
         // 전체 서버에 처치 알림 (간결)
         broadcastKillAnnouncement();
 
@@ -556,10 +541,9 @@ public class FieldBossData {
         }
         mailAPI.sendMail(bestDamagePlayer.getNickname(), bestDamageMail);
 
-        LocalDateTime cooldownAnchor = spawnTime;
         for (PlayerFieldBoss player : validPlayers) {
             mailAPI.sendMail(player.getNickname(), normalMail);
-            player.getJoin(fieldBoss.getId()).completeJoin(cooldownAnchor);
+            player.getJoin(fieldBoss.getId()).completeJoin();
             playerRepository.save(player);
         }
         FieldBossDeathEvent event = new FieldBossDeathEvent(fieldBoss, lastHitPlayer, bestDamagePlayer, validPlayers);

@@ -2,7 +2,6 @@
   "id": 3,
   "mythicMob": "아이스워든",
   "despawnMinute": 10,
-  "initRewardHour": 4,
   "itemStack": {
     "slot": 14,
     "type": "packed_ice",

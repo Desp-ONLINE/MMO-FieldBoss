@@ -2,7 +2,6 @@
   "id": 5,
   "mythicMob": "화무사",
   "despawnMinute": 10,
-  "initRewardHour": 5,
   "itemStack": {
     "slot": 28,
     "type": "cobbled_deepslate",

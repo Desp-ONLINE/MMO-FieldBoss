@@ -2,7 +2,6 @@
   "id": 4,
   "mythicMob": "테네브리스",
   "despawnMinute": 10,
-  "initRewardHour": 4,
   "itemStack": {
     "slot": 16,
     "type": "packed_ice",

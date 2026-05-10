@@ -93,7 +93,6 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
                 lore.add(sessionLine);
             }
             lore.add("");
-            lore.add("§7 - §f" + getMyTime(fieldBoss));
             String dailyLine = getDailyLine(fieldBoss);
             if (dailyLine != null) {
                 lore.add(dailyLine);
@@ -192,22 +191,6 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
         return page;
     }
 
-    private String getMyTime(FieldBoss fieldBoss) {
-        PlayerFieldBoss playerFieldBoss = MMOFieldBoss.getPlugin().getPlayerRepository().get(this.player.getUniqueId());
-        PlayerJoinBoss join = playerFieldBoss.getJoin(fieldBoss.getId());
-        long cooldownHour = join.getCooldownHour(fieldBoss);
-        if (cooldownHour == 0) {
-            return "§a지금 등장하는 필드보스부터 처치할 수 있습니다.";
-        }
-        int lastSpawnHour = join.getLastJoinTime().getHour();
-        int availableHour = join.getLastJoinTime()
-                .plusHours(fieldBoss.getInitRewardHour())
-                .getHour();
-        return String.format("§c%d시 보스에 참여하여, §f%d시 §c부터 등장하는 필드보스를 처치할 수 있습니다.",
-                lastSpawnHour, availableHour);
-    }
-
-
     private String getDailyLine(FieldBoss fieldBoss) {
         int limit = fieldBoss.getDailyLimit();
         if (limit <= 0) {
@@ -302,14 +285,6 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             if (session.isOpening()) {
                 PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().getOrCreate(player);
                 PlayerJoinBoss join = pf.getJoin(boss.getId());
-                LocalDateTime spawnRef = upcomingSpawnTime();
-                if (join.isCooldown(boss, spawnRef)) {
-                    int availableHour = join.getLastJoinTime()
-                            .plusHours(boss.getInitRewardHour())
-                            .getHour();
-                    player.sendMessage(String.format("§c%d시부터 등장하는 필드보스를 처치할 수 있습니다!", availableHour));
-                    return;
-                }
                 if (join.isDailyLimitReached(boss)) {
                     player.sendMessage("§c오늘은 이 필드보스를 모두 처치하셨습니다. §7(자정에 초기화)");
                     return;
@@ -334,21 +309,12 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
 
         PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().getOrCreate(player);
         PlayerJoinBoss join = pf.getJoin(boss.getId());
-        LocalDateTime spawnRef = upcomingSpawnTime();
-        if (join.isCooldown(boss, spawnRef)) {
-            player.sendMessage("§c " + join.getCooldownHour(boss, spawnRef) + "시간 후에 처치할 수 있습니다!");
-            return;
-        }
         if (join.isDailyLimitReached(boss)) {
             player.sendMessage("§c오늘은 이 필드보스를 모두 처치하셨습니다. §7(자정에 초기화)");
             return;
         }
         CommandUtil.runCommandAsOP(player, "채널 워프 " + openServer + " fieldboss 입장 " + boss.getId());
         player.closeInventory();
-    }
-
-    private static LocalDateTime upcomingSpawnTime() {
-        return LocalDateTime.now().withMinute(0).withSecond(0).withNano(0).plusHours(1);
     }
 
     @Override

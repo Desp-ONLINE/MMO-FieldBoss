@@ -18,51 +18,9 @@ public class PlayerJoinBoss {
     @Setter
     private Integer nowJoinedId;
 
-    private LocalDateTime lastHitTime;
-    private LocalDateTime lastJoinTime;
+    private LocalDateTime lastHitTime = LocalDateTime.of(2000, 1, 1, 1, 1, 1);
     private String killCountDate;
     private int todayKillCount;
-
-    public PlayerJoinBoss() {
-        LocalDateTime temp = getResetTime();
-        lastHitTime = temp;
-        lastJoinTime = temp;
-    }
-
-    private LocalDateTime getResetTime() {
-        return LocalDateTime.of(2000, 1, 1, 1, 1, 1);
-    }
-
-    private LocalDateTime normalizeTime(LocalDateTime time) {
-        return time.withMinute(0).withSecond(0).withNano(0);
-    }
-
-    public long getCooldownHour(FieldBoss fieldBoss) {
-        return getCooldownHour(fieldBoss, LocalDateTime.now());
-    }
-
-    public long getCooldownHour(FieldBoss fieldBoss, LocalDateTime referenceTime) {
-        LocalDateTime ref = normalizeTime(referenceTime);
-        LocalDateTime normalizedLastJoinTime = normalizeTime(lastJoinTime);
-
-        int initRewardHour = fieldBoss.getInitRewardHour();
-        long elapsedHours = Duration.between(normalizedLastJoinTime, ref).toHours();
-
-        return Math.max(0, initRewardHour - elapsedHours);
-    }
-
-    public boolean isCooldown(FieldBoss fieldBoss) {
-        return isCooldown(fieldBoss, LocalDateTime.now());
-    }
-
-    public boolean isCooldown(FieldBoss fieldBoss, LocalDateTime referenceTime) {
-        LocalDateTime ref = normalizeTime(referenceTime);
-        LocalDateTime normalizedLastJoinTime = normalizeTime(lastJoinTime);
-
-        int initRewardHour = fieldBoss.getInitRewardHour();
-        return Duration.between(normalizedLastJoinTime, ref).toHours() < initRewardHour;
-    }
-
 
     public boolean isAFK() {
         FieldBossConfig config = MMOFieldBoss.getPlugin().getFieldBossConfig();
@@ -112,14 +70,8 @@ public class PlayerJoinBoss {
         return Math.max(0, limit - getTodayKillCount());
     }
 
-    public void cancelCompleteJoin() {
+    public void completeJoin() {
         reset();
-        lastJoinTime = getResetTime();
-    }
-
-    public void completeJoin(LocalDateTime spawnTime) {
-        reset();
-        lastJoinTime = spawnTime != null ? spawnTime : LocalDateTime.now();
 
         LocalDate today = LocalDate.now();
         LocalDate stored = parseKillCountDate();
