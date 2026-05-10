@@ -30,6 +30,7 @@ public class CooldownResetArgument implements CommandArgument {
         PlayerFieldBoss playerFieldBoss = repository.get(target.getUniqueId());
         PlayerJoinBoss join = playerFieldBoss.getJoin(id);
         join.cancelCompleteJoin();
+        join.resetDailyCount();
 
         repository.save(playerFieldBoss);
         sender.sendMessage("초기화 완료");

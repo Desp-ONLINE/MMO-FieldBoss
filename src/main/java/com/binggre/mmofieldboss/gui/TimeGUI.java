@@ -94,6 +94,10 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
             }
             lore.add("");
             lore.add("§7 - §f" + getMyTime(fieldBoss));
+            String dailyLine = getDailyLine(fieldBoss);
+            if (dailyLine != null) {
+                lore.add(dailyLine);
+            }
             String lvLine = formatLevelRange(fieldBoss);
             if (lvLine != null) {
                 lore.add(lvLine);
@@ -204,6 +208,20 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
     }
 
 
+    private String getDailyLine(FieldBoss fieldBoss) {
+        int limit = fieldBoss.getDailyLimit();
+        if (limit <= 0) {
+            return null;
+        }
+        PlayerFieldBoss pf = MMOFieldBoss.getPlugin().getPlayerRepository().get(player.getUniqueId());
+        PlayerJoinBoss join = pf.getJoin(fieldBoss.getId());
+        int used = join.getTodayKillCount();
+        if (used >= limit) {
+            return String.format("§7 - §c오늘 처치: §e%d§7/§e%d회 §c(한도 도달)", used, limit);
+        }
+        return String.format("§7 - §f오늘 처치: §e%d§7/§e%d회", used, limit);
+    }
+
     private boolean checkLevel(FieldBoss boss) {
         if (player.isOp()) return true;
         int min = boss.getMinLevel();
@@ -292,6 +310,10 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
                     player.sendMessage(String.format("§c%d시부터 등장하는 필드보스를 처치할 수 있습니다!", availableHour));
                     return;
                 }
+                if (join.isDailyLimitReached(boss)) {
+                    player.sendMessage("§c오늘은 이 필드보스를 모두 처치하셨습니다. §7(자정에 초기화)");
+                    return;
+                }
                 if (session.enter(player)) {
                     player.sendMessage("§a필드보스 토벌에 입장했습니다.");
                     player.closeInventory();
@@ -315,6 +337,10 @@ public class TimeGUI implements InventoryHolder, HolderListener, PageInventory {
         LocalDateTime spawnRef = upcomingSpawnTime();
         if (join.isCooldown(boss, spawnRef)) {
             player.sendMessage("§c " + join.getCooldownHour(boss, spawnRef) + "시간 후에 처치할 수 있습니다!");
+            return;
+        }
+        if (join.isDailyLimitReached(boss)) {
+            player.sendMessage("§c오늘은 이 필드보스를 모두 처치하셨습니다. §7(자정에 초기화)");
             return;
         }
         CommandUtil.runCommandAsOP(player, "채널 워프 " + openServer + " fieldboss 입장 " + boss.getId());

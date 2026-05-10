@@ -46,6 +46,7 @@ public class FieldBoss implements MongoData<Integer> {
     private String mythicMob;
     private int despawnMinute;
     private int initRewardHour;
+    private int dailyLimit;
     private int minLevel;
     private int maxLevel;
     private CustomItemStack itemStack;

@@ -7,7 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
 @Getter
 public class PlayerJoinBoss {
@@ -18,6 +20,8 @@ public class PlayerJoinBoss {
 
     private LocalDateTime lastHitTime;
     private LocalDateTime lastJoinTime;
+    private String killCountDate;
+    private int todayKillCount;
 
     public PlayerJoinBoss() {
         LocalDateTime temp = getResetTime();
@@ -73,6 +77,41 @@ public class PlayerJoinBoss {
         lastHitTime = LocalDateTime.now();
     }
 
+    public int getTodayKillCount() {
+        LocalDate stored = parseKillCountDate();
+        if (stored == null || !stored.equals(LocalDate.now())) {
+            return 0;
+        }
+        return todayKillCount;
+    }
+
+    private LocalDate parseKillCountDate() {
+        if (killCountDate == null || killCountDate.isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(killCountDate);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    public boolean isDailyLimitReached(FieldBoss fieldBoss) {
+        int limit = fieldBoss.getDailyLimit();
+        if (limit <= 0) {
+            return false;
+        }
+        return getTodayKillCount() >= limit;
+    }
+
+    public int getRemainingDaily(FieldBoss fieldBoss) {
+        int limit = fieldBoss.getDailyLimit();
+        if (limit <= 0) {
+            return -1;
+        }
+        return Math.max(0, limit - getTodayKillCount());
+    }
+
     public void cancelCompleteJoin() {
         reset();
         lastJoinTime = getResetTime();
@@ -81,6 +120,20 @@ public class PlayerJoinBoss {
     public void completeJoin(LocalDateTime spawnTime) {
         reset();
         lastJoinTime = spawnTime != null ? spawnTime : LocalDateTime.now();
+
+        LocalDate today = LocalDate.now();
+        LocalDate stored = parseKillCountDate();
+        if (stored == null || !stored.equals(today)) {
+            killCountDate = today.toString();
+            todayKillCount = 1;
+        } else {
+            todayKillCount++;
+        }
+    }
+
+    public void resetDailyCount() {
+        killCountDate = null;
+        todayKillCount = 0;
     }
 
     public void reset() {
