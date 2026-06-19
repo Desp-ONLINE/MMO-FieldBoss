@@ -523,6 +523,12 @@ public class FieldBossData {
                 }
             }
         }
+        // getKiller()가 null/비플레이어(도트·스킬 막타 등)인 경우 가장 최근 타격자를 막타로 처리
+        if (lastHitPlayer == null) {
+            lastHitPlayer = validPlayers.stream()
+                    .max(Comparator.comparing(player -> player.getJoin(fieldBoss.getId()).getLastHitTime()))
+                    .orElse(null);
+        }
 
         // 전체 서버에 처치 알림 (간결)
         broadcastKillAnnouncement();

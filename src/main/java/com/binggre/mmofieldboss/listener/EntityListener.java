@@ -50,10 +50,10 @@ public class EntityListener implements Listener {
 
     @EventHandler
     public void onDeath(MythicMobDeathEvent event) {
+        // 막타가 도트/스킬/소환수 데미지면 getKiller()가 null/비플레이어가 될 수 있음.
+        // 이 경우에도 처치는 처리되어야 하므로 player == null 로 onKill 진입 (막타는 최근 타격자로 대체).
         LivingEntity killer = event.getKiller();
-        if (!(killer instanceof Player player)) {
-            return;
-        }
+        Player player = (killer instanceof Player p) ? p : null;
 
         logic(event.getEntity(), fieldBoss -> {
             fieldBoss.getDataThisServer().onKill(player);
